@@ -15,20 +15,21 @@ public class LogAnalyzer
     private String nextLine;
 
     public static void main(String[] args) {
-        new LogAnalyzer().process( "query-logs" );
+        new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/5647/neo4j-db2" );
     }
 
     private void process( String logFolder ){
 
         System.out.println("(1/5) Started!");
         System.out.println("(2/5) Looking for log files...");
-        List<String> fileNames = getAllFilesInFolder("query-logs");
+        List<String> fileNames = LogFileCollector.getAllFilesInFolder( logFolder );
         List<String> allLines = new ArrayList<>();
 
         System.out.println( "(3/5) "+fileNames.size() + " log files found.");
+        System.out.println(fileNames);
         for ( int i = 0; i < fileNames.size(); i++ )
         {
-            allLines.addAll( this.readLog( logFolder + "/" + fileNames.get( i ) ) );
+            allLines.addAll( this.readLog( fileNames.get( i ) ) );
         }
 
         System.out.println( "(4/5) All files are read.");
@@ -39,20 +40,6 @@ public class LogAnalyzer
     }
 
 
-    private List<String> getAllFilesInFolder( String folderLocation ){
-        File folder = new File( folderLocation );
-        File[] listOfFiles = folder.listFiles();
-        List<String> fileNames = new ArrayList<>();
-
-        for ( File listOfFile : listOfFiles )
-        {
-            if ( listOfFile.isFile() )
-            {
-                fileNames.add( listOfFile.getName() );
-            }
-        }
-        return fileNames;
-    }
 
     private List<String> readLog( String file ) {
         List<String> queries = new ArrayList<>();
@@ -75,7 +62,7 @@ public class LogAnalyzer
 
     private void printSummary( Map<String, List<Query>> queryMap ){
         int queryCounter = 0;
-        int totalRunningTime = 0;
+        long totalRunningTime = 0;
         for ( Map.Entry<String, List<Query>> entry : queryMap.entrySet() )
         {
             queryCounter += entry.getValue().size();
@@ -90,6 +77,8 @@ public class LogAnalyzer
         System.out.println( queryCounter + " total queries.");
         System.out.println( queryMap.size() + " different cypher queries.");
         System.out.println( totalRunningTime + " is the total execution time (ms).");
+        System.out.println( (totalRunningTime / 1000) + " is the total execution time (s).");
+        System.out.println( (totalRunningTime / 1000.0 / 3600.0) + " is the total execution time (hours).");
     }
 
     private Map<String, List<Query>> convertToQueryObjectsMap( List<String> queryStrings ){
@@ -97,11 +86,15 @@ public class LogAnalyzer
 
         for ( String queryString : queryStrings )
         {
-            Query query = new Query( queryString );
-            if( !queries.containsKey( query.cypherQuery )) {
-                queries.put( query.cypherQuery, new ArrayList<>() );
+            Query query = QueryParser.parse( queryString );
+            if( query.cypherQuery != null)
+            {
+                if ( !queries.containsKey( query.cypherQuery ) )
+                {
+                    queries.put( query.cypherQuery, new ArrayList<>() );
+                }
+                queries.get( query.cypherQuery ).add( query );
             }
-            queries.get( query.cypherQuery ).add( query );
         }
         return queries;
     }
@@ -111,25 +104,25 @@ public class LogAnalyzer
     {
         try
         {
-
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output.csv" ) );
-            writer.write( "cypher_query, count, nr_joins, avg_run_time_ms, total_run_time_ms" );
+            String seperator = "\t ";
+            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output.tsv" ) );
+            writer.write( "cypher_query \t count \t nr_joins \t avg_run_time_ms \t total_run_time_ms" );
             writer.newLine();
             for ( Map.Entry<String, List<Query>> entry : queries.entrySet() )
             {
                 String line = "";
-                line += entry.getKey().replace( ",", "(COMMA)" );
-                line += ", ";
+                line += entry.getKey().replace( seperator, "(SEPERATOR)" );
+                line += seperator;
                 line += entry.getValue().size();
-                line += ", ";
+                line += seperator;
                 line += entry.getValue().get( 0 ).relCount;
-                line += ", ";
+                line += seperator;
                 float sumOfRunningTime = 0;
                 for( Query q : entry.getValue() ){
                     sumOfRunningTime += q.executionTime;
                 }
                 line += (int) (sumOfRunningTime / entry.getValue().size());
-                line += ", ";
+                line += seperator;
                 line += (int) sumOfRunningTime;
                 writer.write( line );
                 writer.newLine();
