@@ -2,23 +2,29 @@ package analyzer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LogFileCollector
 {
 
-    public static List<String> getAllFilesInFolder( String folderLocation ){
+    public static Map<String, List<String>> getAllFilesInFolder( Map<String,List<String>> fileNames, String folderLocation ){
         File folder = new File( folderLocation );
         File[] listOfFiles = folder.listFiles();
-        List<String> fileNames = new ArrayList<>();
 
         for ( File listOfFile : listOfFiles )
             if ( listOfFile.isFile() )
             {
                 if ( listOfFile.getName().contains( "query.log" ) && !listOfFile.getName().endsWith( ".zip" ))
-                    fileNames.add( listOfFile.getAbsolutePath() );
+                {
+                    if ( !fileNames.containsKey(  folderLocation  )){
+                        fileNames.put( folderLocation, new ArrayList<>());
+                    }
+                    fileNames.get( folderLocation ).add (listOfFile.getAbsolutePath());
+                }
             }else{
-                fileNames.addAll( getAllFilesInFolder( listOfFile.getAbsolutePath() ) );
+                fileNames.putAll( getAllFilesInFolder( fileNames, listOfFile.getAbsolutePath() ) );
             }
 
 

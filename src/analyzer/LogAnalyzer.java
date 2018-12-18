@@ -1,12 +1,12 @@
 package analyzer;
 
 import parser.QueryParser;
+import writer.SummaryPrinter;
+import writer.TSVWriter;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,33 +18,41 @@ public class LogAnalyzer
     private String nextLine;
 
     public static void main(String[] args) {
-        new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/5647/neo4j-db2" );
+        new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/" );
     }
 
     private void process( String logFolder ){
+        System.out.print("(4/5) Writing parsed log to CSV...");
+        Map<String, List<String>> fileNamesPerFolder = getAllFiles( logFolder );
+        Map<String, List<String>> allLinesPerFolder = readAllLinesForAllFiles( fileNamesPerFolder );
+        Map<String, Map<String, List<Query>>> queries = parseAndMapQueries( allLinesPerFolder );
 
-        System.out.println("(1/5) Started!");
-        System.out.println("(2/5) Looking for log files...");
-        List<String> fileNames = LogFileCollector.getAllFilesInFolder( logFolder );
-        List<String> allLines = new ArrayList<>();
-
-        System.out.println( "(3/5) "+fileNames.size() + " log files found.");
-        System.out.println(fileNames);
-        for ( int i = 0; i < fileNames.size(); i++ )
-        {
-            allLines.addAll( this.readLog( fileNames.get( i ) ) );
+        // Print output
+        for ( Map.Entry<String, Map<String,List<Query>>> singleFolderQueries : queries.entrySet() ){
+            String name = singleFolderQueries.getKey().substring( logFolder.length() ).replace( "/", "-" );
+            TSVWriter.writeParsedLog( name, singleFolderQueries.getValue() );
+            SummaryPrinter.printSummary( name, singleFolderQueries.getValue() );
         }
-
-        System.out.println( "(4/5) All files are read.");
-        Map<String, List<Query>> queries = convertToQueryObjectsMap( allLines );
-        System.out.println( "(5/5) Queries are mapped to their Cypher strings." );
-        writeParsedLog( queries );
-        printSummary( queries );
     }
 
+    private Map<String, List<String>> readAllLinesForAllFiles( Map<String, List<String>> fileNames )
+    {
+        Map<String, List<String>> allLines = new HashMap<>();
+        System.out.print( "(2/5) Reading all log files...");
+        for ( Map.Entry<String, List<String>> entry : fileNames.entrySet() )
+        {
+            List<String> lines = new ArrayList<>();
+            for ( String fileName : entry.getValue() )
+            {
+                lines.addAll( this.readAllLinesForFile( fileName ) );
+            }
+            allLines.put( entry.getKey(), lines );
+        }
+        System.out.println( " done.");
+        return allLines;
+    }
 
-
-    private List<String> readLog( String file ) {
+    private List<String> readAllLinesForFile( String file ) {
         List<String> queries = new ArrayList<>();
         try
         {
@@ -63,79 +71,45 @@ public class LogAnalyzer
         return queries;
     }
 
-    private void printSummary( Map<String, List<Query>> queryMap ){
-        int queryCounter = 0;
-        long totalRunningTime = 0;
-        for ( Map.Entry<String, List<Query>> entry : queryMap.entrySet() )
-        {
-            queryCounter += entry.getValue().size();
-            for ( Query query : entry.getValue() ){
-                totalRunningTime += query.executionTime;
-            }
-        }
-        System.out.println();
-        System.out.println("------------------------------");
-        System.out.println("|           SUMMARY          |");
-        System.out.println("------------------------------");
-        System.out.println( queryCounter + " total queries.");
-        System.out.println( queryMap.size() + " different cypher queries.");
-        System.out.println( totalRunningTime + " is the total execution time (ms).");
-        System.out.println( (totalRunningTime / 1000) + " is the total execution time (s).");
-        System.out.println( (totalRunningTime / 1000.0 / 3600.0) + " is the total execution time (hours).");
+    private Map<String,List<String>> getAllFiles( String logFolder )
+    {
+        System.out.print("(1/5) Looking for log files...");
+        Map<String, List<String>> fileNamesPerFolder = LogFileCollector.getAllFilesInFolder( new HashMap<>(), logFolder );
+        System.out.println( " done. "+fileNamesPerFolder.size() + " log folders found." );
+        return fileNamesPerFolder;
     }
 
-    private Map<String, List<Query>> convertToQueryObjectsMap( List<String> queryStrings ){
-        Map<String, List<Query>> queries = new HashMap<>();
 
-        for ( String queryString : queryStrings )
+    // Returns, for each unique neo4j database, the queries in the log, differentiated by their cypher string.
+    private Map<String, Map<String, List<Query>>> parseAndMapQueries( Map<String, List<String>> queryStringsPerFolder ){
+        System.out.println("(3/5) Parsing queries...");
+        Map<String, Map<String, List<Query>>> queriesByFolder = new HashMap<>();
+
+        for ( Map.Entry<String, List<String>> folderAndQueryStrings : queryStringsPerFolder.entrySet() )
         {
-            Query query = QueryParser.parse( queryString );
+            parseAllQueriesInSingleFolder( queriesByFolder, folderAndQueryStrings );
+        }
+        System.out.println( "Done! " + queriesByFolder.size()+ " folders with queries are parsed." );
+        return queriesByFolder;
+    }
+
+    private void parseAllQueriesInSingleFolder( Map<String,Map<String,List<Query>>> queriesByFolder, Map.Entry<String,List<String>> folderAndQueryStrings )
+    {
+        Map<String, List<Query>> queriesMappedByCypherString = new HashMap<>();
+
+        for ( String singleQuery : folderAndQueryStrings.getValue())
+        {
+            Query query = QueryParser.parse( folderAndQueryStrings.getKey(), singleQuery );
             if( query.cypherQuery != null)
             {
-                if ( !queries.containsKey( query.cypherQuery ) )
+                if ( !queriesMappedByCypherString.containsKey( query.cypherQuery ) )
                 {
-                    queries.put( query.cypherQuery, new ArrayList<>() );
+                    queriesMappedByCypherString.put( query.cypherQuery, new ArrayList<>() );
                 }
-                queries.get( query.cypherQuery ).add( query );
+                queriesMappedByCypherString.get( query.cypherQuery ).add( query );
             }
         }
-        return queries;
-    }
-
-
-    private void writeParsedLog( Map<String, List<Query>> queries )
-    {
-        try
-        {
-            String seperator = "\t ";
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/output.tsv" ) );
-            writer.write( "cypher_query \t count \t nr_joins \t avg_run_time_ms \t total_run_time_ms" );
-            writer.newLine();
-            for ( Map.Entry<String, List<Query>> entry : queries.entrySet() )
-            {
-                String line = "";
-                line += entry.getValue().get( 0 ).cypherQuery;
-                line += seperator;
-                line += entry.getValue().size();
-                line += seperator;
-                line += entry.getValue().get( 0 ).relCount;
-                line += seperator;
-                float sumOfRunningTime = 0;
-                for( Query q : entry.getValue() ){
-                    sumOfRunningTime += q.executionTime;
-                }
-                line += (int) (sumOfRunningTime / entry.getValue().size());
-                line += seperator;
-                line += (int) sumOfRunningTime;
-                writer.write( line );
-                writer.newLine();
-            }
-            writer.close();
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
+        queriesByFolder.put( folderAndQueryStrings.getKey(), queriesMappedByCypherString );
     }
 
     private String readSingleQuery( BufferedReader reader ) throws IOException

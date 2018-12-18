@@ -4,13 +4,13 @@ import analyzer.Query;
 
 public class QueryParser
 {
-    public static Query parse ( String entireLine ){
+    public static Query parse ( String fileName, String entireLine ){
 
         Query query = new Query();
         String[] tabbed = entireLine.split("\t");
 
         if ( tabbed.length == 1 ) {
-            System.out.println("[ERROR] CANNOT PARSE: " + entireLine);
+            printParsingError( fileName, entireLine );
             return new Query();
         }
         if ( tabbed.length == 5 ) {
@@ -32,7 +32,7 @@ public class QueryParser
             query.server = tabbed[6];
             query.query = tabbed[7];
         }else{
-            System.out.println("[ERROR] CANNOT PARSE: " + entireLine);
+            printParsingError( fileName, entireLine );
             return new Query();
         }
 
@@ -45,7 +45,7 @@ public class QueryParser
 
         if ( !query.cypherQuery.startsWith( "MATCH" ) )
         {
-            System.out.println("NOT START WITH MATCH! " +query.cypherQuery);
+            //System.out.println("[ERROR!] QUERY DOES NOT START WITH MATCH! " +query.cypherQuery);
         }
         query.cypherQuery = query.cypherQuery.substring( 0, Math.min(query.cypherQuery.length(), 1000) );
 
@@ -56,5 +56,10 @@ public class QueryParser
             query.executionTime = Integer.parseInt( millsecondsAsString );
         }
         return query;
+    }
+
+    private static void printParsingError( String fileName, String entireLine )
+    {
+        System.out.println("[ERROR] FILE="+fileName+", CANNOT PARSE: " + entireLine);
     }
 }
