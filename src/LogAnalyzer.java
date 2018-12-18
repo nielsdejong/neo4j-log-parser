@@ -105,13 +105,13 @@ public class LogAnalyzer
         try
         {
             String seperator = "\t ";
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output.tsv" ) );
+            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/output.tsv" ) );
             writer.write( "cypher_query \t count \t nr_joins \t avg_run_time_ms \t total_run_time_ms" );
             writer.newLine();
             for ( Map.Entry<String, List<Query>> entry : queries.entrySet() )
             {
                 String line = "";
-                line += entry.getKey().replace( seperator, "(SEPERATOR)" );
+                line += entry.getValue().get( 0 ).cypherQuery;
                 line += seperator;
                 line += entry.getValue().size();
                 line += seperator;
