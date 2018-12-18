@@ -1,3 +1,5 @@
+package analyzer;
+
 public class Query
 {
     public String cypherQuery;

@@ -1,3 +1,7 @@
+package parser;
+
+import analyzer.Query;
+
 public class QueryParser
 {
     public static Query parse ( String entireLine ){
