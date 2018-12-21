@@ -15,7 +15,7 @@ public class TSVWriter
         try
         {
             String seperator = "\t ";
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
+            BufferedWriter writer = new BufferedWriter( new PrintWriter( "/output/"+name+".tsv" ) );
             writer.write( "cypher_query \t count \t nr_joins \t avg_run_time_ms \t total_run_time_ms" );
             writer.newLine();
             for ( Map.Entry<String, List<Query>> entry : queries.entrySet() )

@@ -1,6 +1,7 @@
 package analyzer;
 
 import parser.QueryParser;
+import org.neo4j.cypher.internal.special.CypherSpecialLogParsing;
 import writer.SummaryPrinter;
 import writer.TSVWriter;
 
@@ -14,11 +15,16 @@ import java.util.Map;
 
 public class LogAnalyzer
 {
-
     private String nextLine;
 
     public static void main(String[] args) {
-        new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/" );
+        CypherSpecialLogParsing cypher = new CypherSpecialLogParsing();
+        //new CypherSpecialLogParsing().doParsing( "MATCH (a:A)-[:R1*2..5]->(b:B) RETURN b" );
+        for ( int i = 0; i < 100; i++ )
+        {
+            cypher.doParsing( "MATCH (a:A)-[:R1*2..5]->(b:B) RETURN b" );
+        }
+        //new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/" );
     }
 
     private void process( String logFolder ){
@@ -26,6 +32,7 @@ public class LogAnalyzer
         Map<String, List<String>> fileNamesPerFolder = getAllFiles( logFolder );
         Map<String, List<String>> allLinesPerFolder = readAllLinesForAllFiles( fileNamesPerFolder );
         Map<String, Map<String, List<Query>>> queries = parseAndMapQueries( allLinesPerFolder );
+
 
         // Print output
         for ( Map.Entry<String, Map<String,List<Query>>> singleFolderQueries : queries.entrySet() ){
