@@ -1,10 +1,22 @@
 package parser;
 
-import analyzer.Query;
+import cypher.Query;
 
-public class QueryParser
+import java.util.Map;
+
+import org.neo4j.cypher.internal.special.CypherSpecialLogParsing;
+
+public class CypherQueryParser
 {
-    public static Query parse ( String fileName, String entireLine ){
+    CypherSpecialLogParsing cypherSpecialParser;
+    public Map<String, ParsedQueryResult> cache;
+
+
+    public CypherQueryParser(){
+        cypherSpecialParser = new CypherSpecialLogParsing();
+    }
+
+    public Query parse ( String fileName, String entireLine ){
 
         Query query = new Query();
         String[] tabbed = entireLine.split("\t");
@@ -41,11 +53,29 @@ public class QueryParser
             query.user = "";
 
         query.cypherQuery = query.query.split( query.user + " - ")[1];
+        query.cypherQuery = query.cypherQuery.split( "- \\{" )[0];
+
         query.relCount = query.cypherQuery.split( "\\[" ).length - 1 +  query.cypherQuery.split( "--" ).length - 1;
 
         if ( !query.cypherQuery.startsWith( "MATCH" ) )
         {
-            //System.out.println("[ERROR!] QUERY DOES NOT START WITH MATCH! " +query.cypherQuery);
+            System.out.println("[ERROR!] QUERY DOES NOT START WITH MATCH! " +query.cypherQuery);
+        } else {
+            try{
+                //System.out.println( query.cypherQuery );
+                ParsedQueryResult parsedQueryResult = cache.get( query.cypherQuery );
+                if ( parsedQueryResult == null ) {
+                    parsedQueryResult  = new ParsedQueryResult(cypherSpecialParser.doParsing( query.cypherQuery ));
+                    cache.put( query.cypherQuery, parsedQueryResult );
+                }
+                query.parsed = parsedQueryResult;
+
+            }catch(Exception e ){
+                e.printStackTrace();
+                while ( 1 == 1){
+                    int q = 1 + 1;
+                }
+            }
         }
         query.cypherQuery = query.cypherQuery.substring( 0, Math.min(query.cypherQuery.length(), 1000) );
 

@@ -1,6 +1,6 @@
 package writer;
 
-import analyzer.Query;
+import cypher.Query;
 
 import java.util.List;
 import java.util.Map;

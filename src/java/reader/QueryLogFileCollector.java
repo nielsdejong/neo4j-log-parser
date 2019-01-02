@@ -1,4 +1,4 @@
-package analyzer;
+package reader;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6,7 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LogFileCollector
+/**
+ * Recursively finds all Neo4j query logs in a folder.
+ */
+public class QueryLogFileCollector
 {
 
     public static Map<String, List<String>> getAllFilesInFolder( Map<String,List<String>> fileNames, String folderLocation ){

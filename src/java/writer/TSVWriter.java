@@ -1,6 +1,6 @@
 package writer;
 
-import analyzer.Query;
+import cypher.Query;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -15,8 +15,8 @@ public class TSVWriter
         try
         {
             String seperator = "\t ";
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "/output/"+name+".tsv" ) );
-            writer.write( "cypher_query \t count \t nr_joins \t avg_run_time_ms \t total_run_time_ms" );
+            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
+            writer.write( "cypher_query \t count \t nr_joins \t parsed \t avg_run_time_ms \t total_run_time_ms" );
             writer.newLine();
             for ( Map.Entry<String, List<Query>> entry : queries.entrySet() )
             {
@@ -27,6 +27,9 @@ public class TSVWriter
                 line += seperator;
                 line += entry.getValue().get( 0 ).relCount;
                 line += seperator;
+                line += entry.getValue().get( 0 ).parsed;
+                line += seperator;
+
                 float sumOfRunningTime = 0;
                 for( Query q : entry.getValue() ){
                     sumOfRunningTime += q.executionTime;
