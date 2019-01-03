@@ -1,11 +1,11 @@
-package cypher;
+package parser;
 
-import parser.ParsedQueryResult;
+import cypher.ParsedQueryResult;
 
 /**
- * Simple data class that contains the information from a Query.
+ * Simple data class that contains the information from a single entry in the query log.
  */
-public class Query
+public class QueryLogEntry
 {
     public String cypherQuery;
     public int relCount;

@@ -12,7 +12,7 @@ import java.util.Map;
 public class QueryLogFileCollector
 {
 
-    public static Map<String, List<String>> getAllFilesInFolder( Map<String,List<String>> fileNames, String folderLocation ){
+    public Map<String, List<String>> getAllFilesInFolder( Map<String,List<String>> fileNames, String folderLocation ){
         File folder = new File( folderLocation );
         File[] listOfFiles = folder.listFiles();
 

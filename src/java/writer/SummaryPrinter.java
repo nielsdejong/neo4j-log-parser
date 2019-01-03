@@ -1,25 +1,25 @@
 package writer;
 
-import cypher.Query;
+import parser.QueryLogEntry;
 
 import java.util.List;
 import java.util.Map;
 
 public class SummaryPrinter
 {
-    public static void printSummary( String name, Map<String,List<Query>> queryMap ){
+    public static void printSummary( String name, Map<String,List<QueryLogEntry>> queryMap ){
         int queryCounter = 0;
         long totalRunningTime = 0;
-        for ( Map.Entry<String, List<Query>> entry : queryMap.entrySet() )
+        for ( Map.Entry<String, List<QueryLogEntry>> entry : queryMap.entrySet() )
         {
             queryCounter += entry.getValue().size();
-            for ( Query query : entry.getValue() ){
+            for ( QueryLogEntry query : entry.getValue() ){
                 totalRunningTime += query.executionTime;
             }
         }
         System.out.println();
         System.out.println("------------------------------");
-        System.out.println("        "+name);
+        System.out.println(name);
         System.out.println("------------------------------");
         System.out.println( queryCounter + " total queries.");
         System.out.println( queryMap.size() + " different cypher queries.");

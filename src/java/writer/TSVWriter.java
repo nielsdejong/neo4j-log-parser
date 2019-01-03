@@ -1,6 +1,6 @@
 package writer;
 
-import cypher.Query;
+import parser.QueryLogEntry;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class TSVWriter
 {
-    public static void writeParsedLog( String name, Map<String,List<Query>> queries )
+    public static void writeParsedLog( String name, Map<String,List<QueryLogEntry>> queries )
     {
         try
         {
@@ -18,7 +18,7 @@ public class TSVWriter
             BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
             writer.write( "cypher_query \t count \t nr_joins \t parsed \t avg_run_time_ms \t total_run_time_ms" );
             writer.newLine();
-            for ( Map.Entry<String, List<Query>> entry : queries.entrySet() )
+            for ( Map.Entry<String, List<QueryLogEntry>> entry : queries.entrySet() )
             {
                 String line = "";
                 line += entry.getValue().get( 0 ).cypherQuery.replace( seperator, "," );
@@ -31,7 +31,7 @@ public class TSVWriter
                 line += seperator;
 
                 float sumOfRunningTime = 0;
-                for( Query q : entry.getValue() ){
+                for( QueryLogEntry q : entry.getValue() ){
                     sumOfRunningTime += q.executionTime;
                 }
                 line += (int) (sumOfRunningTime / entry.getValue().size());

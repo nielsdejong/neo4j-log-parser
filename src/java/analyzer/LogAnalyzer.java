@@ -1,6 +1,6 @@
 package analyzer;
 
-import cypher.Query;
+import parser.QueryLogEntry;
 import parser.QueryLogParser;
 import reader.QueryLogFileCollector;
 import reader.QueryLogFileReader;
@@ -15,32 +15,32 @@ public class LogAnalyzer
 {
 
     public static void main(String[] args) {
-        new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/" );
+        new LogAnalyzer().process( "/home/niels/Desktop/customer stuff/WesternUnion-5705/" );
     }
 
     private void process( String logFolder ){
 
         // First, find all folders with log files.
-        System.out.print("(1/5) Looking for log files...");
-        Map<String, List<String>> fileNamesPerFolder = QueryLogFileCollector.getAllFilesInFolder( new HashMap<>(), logFolder );
-        System.out.println( " done. "+fileNamesPerFolder.size() + " log folders found." );
+        System.out.println("[LOG COLLECTOR] Looking for log files...");
+        Map<String, List<String>> fileNamesPerFolder = new QueryLogFileCollector().getAllFilesInFolder( new HashMap<>(), logFolder );
+        System.out.println( "[LOG COLLECTOR] "+fileNamesPerFolder.size() + " log folders found." );
 
         // Then, read all log files.
-        System.out.print( "(2/5) Reading all log files...");
+        System.out.println( "[LOG READER] Reading all log files...");
         Map<String, List<String>> allLinesPerFolder = new QueryLogFileReader().readAllLinesForAllFiles( fileNamesPerFolder );
-        System.out.println( " done.");
+        System.out.println( "[LOG READER] done.");
 
         // Then, parse the queries.
-        System.out.println("(3/5) Parsing queries...");
-        Map<String, Map<String, List<Query>>> queries = new QueryLogParser().parseAndMapQueries( allLinesPerFolder );
-        System.out.println( "Done! " + queries.size()+ " folders with queries are parsed." );
+        System.out.println("[PARSER] Parsing queries...");
+        Map<String, Map<String, List<QueryLogEntry>>> queries = new QueryLogParser().parseAndMapQueries( allLinesPerFolder );
+        System.out.println( "[PARSER] Done! " + queries.size()+ " folders with queries are parsed." );
 
         // Write the results to the output files.
-        System.out.print("(4/5) Writing parsed log to CSV & Printing Results.");
-        for ( Map.Entry<String, Map<String,List<Query>>> singleFolderQueries : queries.entrySet() ){
+        System.out.println("[OUTPUT WRITER] Writing parsed log to CSV & Printing summary...");
+        for ( Map.Entry<String, Map<String,List<QueryLogEntry>>> singleFolderQueries : queries.entrySet() ){
             String name = singleFolderQueries.getKey().substring( logFolder.length() ).replace( "/", "-" );
             TSVWriter.writeParsedLog( name, singleFolderQueries.getValue() );
-            SummaryPrinter.printSummary( name, singleFolderQueries.getValue() );
+            SummaryPrinter.printSummary( logFolder + name, singleFolderQueries.getValue() );
         }
     }
 }
