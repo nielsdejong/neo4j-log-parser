@@ -1,5 +1,7 @@
 package parser;
 
+import cypher.anonymized.AnonMapper;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,33 +12,39 @@ import java.util.Map;
  */
 public class QueryLogParser
 {
+
+    CypherQueryParser parser = new CypherQueryParser();
+
     // Returns, for each unique neo4j database, the queries in the log, differentiated by their cypher string.
+    @Deprecated
     public Map<String,Map<String,List<QueryLogEntry>>> parseAndMapQueries( Map<String, List<String>> queryStringsPerFolder ){
         Map<String, Map<String, List<QueryLogEntry>>> queriesByFolder = new HashMap<>();
-        CypherQueryParser parser = new CypherQueryParser();
 
         for ( Map.Entry<String, List<String>> folderAndQueryStrings : queryStringsPerFolder.entrySet() )
         {
-            parser.cache = new HashMap<>();
-            parseAllQueriesInSingleFolder( parser, queriesByFolder, folderAndQueryStrings );
+            Map<String, List<QueryLogEntry>> queriesByCypherString =
+                    parseAllQueriesInSingleFolder( folderAndQueryStrings.getKey(), folderAndQueryStrings.getValue() );
+            queriesByFolder.put( folderAndQueryStrings.getKey(), queriesByCypherString );
         }
 
         return queriesByFolder;
     }
 
-    private void parseAllQueriesInSingleFolder( CypherQueryParser parser, Map<String,Map<String,List<QueryLogEntry>>> queriesByFolder, Map.Entry<String,List<String>> folderAndQueryStrings )
+    public Map<String, List<QueryLogEntry>> parseAllQueriesInSingleFolder( String folder, List<String> lines )
     {
-        int size = folderAndQueryStrings.getValue().size();
-        System.out.println( "[PARSER] Parsing queries in folder: " + folderAndQueryStrings.getKey() + " (log_size = " + size + ")");
+        parser.cache = new HashMap<>();
+        int size = lines.size();
+        AnonMapper.resetForLabels();
+        System.out.println( "[PARSER] Parsing queries in folder: " + folder + " (log_size = " + size + ")");
         Map<String, List<QueryLogEntry>> queriesMappedByCypherString = new HashMap<>();
         int counter = 0;
 
-        for ( String singleQueryString : folderAndQueryStrings.getValue())
+        for ( String singleQueryString : lines )
         {
             // Just to check the progress we keep a counter.
             counter = updateCounter( size, counter );
 
-            QueryLogEntry query = parser.parse( folderAndQueryStrings.getKey(), singleQueryString );
+            QueryLogEntry query = parser.parse( folder, singleQueryString );
             if( query.cypherQuery != null)
             {
                 if ( !queriesMappedByCypherString.containsKey( query.cypherQuery ) )
@@ -46,14 +54,14 @@ public class QueryLogParser
                 queriesMappedByCypherString.get( query.cypherQuery ).add( query );
             }
         }
-        queriesByFolder.put( folderAndQueryStrings.getKey(), queriesMappedByCypherString );
+        return queriesMappedByCypherString;
     }
 
     private int updateCounter( int size, int counter )
     {
         counter++;
-        if ( counter % 1000 == 0 ){
-            System.out.println( "[PARSER] " + counter + "/" + size );
+        if ( counter % 10000 == 0 ){
+            System.out.println( "[PARSER] " + counter + "/" + size + " queries parsed...");
         }
         return counter;
     }

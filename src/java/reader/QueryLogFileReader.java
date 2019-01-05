@@ -15,20 +15,33 @@ public class QueryLogFileReader
 {
     private String nextLine;
 
+    @Deprecated
     public Map<String,List<String>> readAllLinesForAllFiles( Map<String, List<String>> fileNames )
     {
         Map<String, List<String>> allLines = new HashMap<>();
 
+        int counter = 0;
         for ( Map.Entry<String, List<String>> entry : fileNames.entrySet() )
         {
-            List<String> lines = new ArrayList<>();
-            for ( String fileName : entry.getValue() )
-            {
-                lines.addAll( this.readAllLinesForFile( fileName ) );
-            }
+            List<String> lines = readAllFilesInSingleFolder( entry.getKey(), entry.getValue() );
             allLines.put( entry.getKey(), lines );
         }
+        System.out.println( "Read all files. Total number of log lines read: " + counter + " lines.");
         return allLines;
+    }
+
+    public List<String> readAllFilesInSingleFolder( String folderName, List<String> fileNames )
+    {
+        List<String> lines = new ArrayList<>();
+
+        for ( String fileName : fileNames )
+        {
+            lines.addAll( this.readAllLinesForFile( fileName ) );
+        }
+        // allLines.put( folderName, lines );
+
+        System.out.println( "[LOG READER] Folder " + folderName + " has " + lines.size() + " lines.");
+        return lines;
     }
 
     private List<String> readAllLinesForFile( String file ) {
@@ -38,6 +51,7 @@ public class QueryLogFileReader
             BufferedReader br = new BufferedReader(new FileReader(file));
             String query;
             nextLine = br.readLine();
+
             while ( ( query = readSingleQuery(br) ) != null)
             {
                 queries.add( query );

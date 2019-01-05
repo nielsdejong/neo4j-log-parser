@@ -1,5 +1,7 @@
 package reader;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +14,7 @@ import java.util.Map;
 public class QueryLogFileCollector
 {
 
-    public Map<String, List<String>> getAllFilesInFolder( Map<String,List<String>> fileNames, String folderLocation ){
+    public Map<String, List<String>> getAllFilesInFolder( Map<String,List<String>> fileNames, String folderLocation, String[] namesToIgnore ){
         File folder = new File( folderLocation );
         File[] listOfFiles = folder.listFiles();
 
@@ -27,7 +29,9 @@ public class QueryLogFileCollector
                     fileNames.get( folderLocation ).add (listOfFile.getAbsolutePath());
                 }
             }else{
-                fileNames.putAll( getAllFilesInFolder( fileNames, listOfFile.getAbsolutePath() ) );
+                if ( !listOfFile.getName().toLowerCase().contains( namesToIgnore[0].toLowerCase())) {
+                    fileNames.putAll( getAllFilesInFolder( fileNames, listOfFile.getAbsolutePath(), namesToIgnore ) );
+                }
             }
 
 

@@ -1,5 +1,6 @@
 package cypher;
 
+import cypher.anonymized.AnonMapper;
 import scala.Tuple2;
 import scala.collection.immutable.Set;
 import org.neo4j.cypher.internal.ir.v4_0.PatternRelationship;
@@ -24,6 +25,7 @@ public class ParsedQueryResult
     private void generateString( Tuple2<Set<PatternRelationship>,Set<Expression>> tuple2 ){
         Set<PatternRelationship> patternRelationshipSet = tuple2._1;
         Set<Expression> expressionSet = tuple2._2;
+        AnonMapper.resetForNames();
         string = "";
 
         Map<String, List<String>> nodesAndTheirLabels = new HashMap<>();
@@ -46,7 +48,7 @@ public class ParsedQueryResult
         for ( PatternRelationship patternRelationship : JavaConversions.asJavaIterable( patternRelationshipSet) )
         {
             ParsedRelationshipBlock block = new ParsedRelationshipBlock( patternRelationship, nodesAndTheirLabels );
-            string +=  block;
+            string +=  block.toAnonymyzedString() + "    ";
         }
     }
     public String toString(){
