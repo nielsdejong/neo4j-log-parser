@@ -1,6 +1,7 @@
 package cypher;
 
 import cypher.anonymized.AnonMapper;
+import org.apache.commons.collections.CollectionUtils;
 import scala.collection.JavaConversions;
 
 import java.util.ArrayList;
@@ -15,32 +16,61 @@ import org.neo4j.cypher.internal.v4_0.expressions.SemanticDirection;
 
 public class ParsedRelationshipBlock
 {
-    private String leftNode;
-    private List<String> leftLabels;
-    private String rightNode;
-    private List<String> rightLabels;
-    private String relName;
-    private List<String> types = new ArrayList<>();
+    public String leftNodeName;
+    public List<String> leftLabels;
+    public String rightNodeName;
+    public List<String> rightLabels;
+    public String relName;
+    public List<String> types = new ArrayList<>();
 
     private String anonLeftNode;
-    private List<String> anonLeftLabels = new ArrayList<>();
+    public List<String> anonLeftLabels = new ArrayList<>();
     private String anonRightNode;
-    private List<String> anonRightLabels = new ArrayList<>();
+    public List<String> anonRightLabels = new ArrayList<>();
     private String anonRelName;
-    private List<String> anonTypes = new ArrayList<>();
+    public List<String> anonTypes = new ArrayList<>();
 
-    private SemanticDirection direction;
+    public SemanticDirection direction;
 
+    public int getMinLength()
+    {
+        return minLength;
+    }
+
+    public int getMaxLength()
+    {
+        return maxLength;
+    }
 
     private int minLength = 1;
     private int maxLength = 1;
 
+    public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels, String relName, List<String> types, List<String> rightLabels, String rightNodeName, SemanticDirection direction, int minLength, int maxLength ){
+        this.leftLabels = leftLabels;
+        this.rightLabels = rightLabels;
+        this.types = types;
+        this.direction = direction;
+
+        this.leftNodeName = leftNodeName;
+        this.relName = relName;
+        this.rightNodeName = rightNodeName;
+
+        this.minLength = minLength;
+        this.maxLength = maxLength;
+    }
+
     public ParsedRelationshipBlock ( PatternRelationship patternRelationship, Map<String, List<String>> nodeLabelMap )
     {
-        this.leftNode = patternRelationship.left();
-        this.rightNode = patternRelationship.right();
-        this.leftLabels = nodeLabelMap.get( leftNode );
-        this.rightLabels = nodeLabelMap.get( rightNode );
+        this.leftNodeName = patternRelationship.left();
+        this.rightNodeName = patternRelationship.right();
+        this.leftLabels = nodeLabelMap.get( leftNodeName );
+        this.rightLabels = nodeLabelMap.get( rightNodeName );
+        if ( leftLabels == null ){
+            leftLabels = new ArrayList<>( );
+        }
+        if ( rightLabels == null ){
+            rightLabels = new ArrayList<>( );
+        }
         this.direction = patternRelationship.dir();
         this.relName = patternRelationship.name();
         PatternLength patternLength = patternRelationship.length();
@@ -49,7 +79,7 @@ public class ParsedRelationshipBlock
             minLength = varPatternLength.min();
             maxLength = varPatternLength.implicitPatternNodeCount();
             if ( varPatternLength.max().toString().equals( "None" )){
-                maxLength = Integer.MAX_VALUE;
+                maxLength = 10000; // RPQ's
             }
 
         }
@@ -61,17 +91,25 @@ public class ParsedRelationshipBlock
 
     public String toString(){
         return
-                "(" + leftNode + labels(leftLabels) + ")" + getLeftRelPrefix() +
+                "(" + leftNodeName + labels(leftLabels) + ")" + getLeftRelPrefix() +
                 "-[" + relName + labels(types) + relCountAsString() +" ]-" + getRightRelPrefix() +
-        "(" + rightNode + labels(rightLabels) + ")";
+        "(" + rightNodeName + labels(rightLabels) + ")";
     }
 
-    private String getLeftRelPrefix()
+    public String toPatternString(){
+        return
+                "(" + labels(leftLabels) + ")" + getLeftRelPrefix() +
+                        "-[" + labels(types) + relCountAsString() +" ]-" + getRightRelPrefix() +
+                        "("  + labels(rightLabels) + ")";
+    }
+
+
+    protected String getLeftRelPrefix()
     {
         return direction.toString().equals( "INCOMING" ) ? "<" : "";
     }
 
-    private String getRightRelPrefix()
+    protected String getRightRelPrefix()
     {
         return direction.toString().equals( "OUTGOING" ) ? ">" : "";
     }
@@ -85,7 +123,9 @@ public class ParsedRelationshipBlock
     }
 
     public String relCountAsString(){
-        if ( minLength != maxLength ){
+        if ( minLength == 1 && maxLength == 10000)
+            return "*";
+        else if ( minLength != maxLength ){
             return "*"+minLength + ".." + maxLength;
         }else if ( minLength == 1){
             return "";
@@ -96,8 +136,8 @@ public class ParsedRelationshipBlock
 
     public String labels( List<String> labels ){
 
-        if ( labels.size() == 0 ){
-            return "";
+        if ( labels == null || labels.size() == 0 ){
+            return ": ";
         } else if ( labels.size() == 1 ){
             return ":"+labels.get( 0 );
         }else {
@@ -120,8 +160,43 @@ public class ParsedRelationshipBlock
                 anonRightLabels.add( AnonMapper.getNodeLabel( rightLabel ) );
 
         // Anonimyze the names
-        anonLeftNode = AnonMapper.getNodeName( leftNode );
-        anonRightNode = AnonMapper.getNodeName( rightNode );
+        anonLeftNode = AnonMapper.getNodeName( leftNodeName );
+        anonRightNode = AnonMapper.getNodeName( rightNodeName );
         anonRelName = AnonMapper.getRelName( relName );
+
     }
+
+    @Override
+    public boolean equals(Object obj){
+        if ( ! (obj instanceof  ParsedRelationshipBlock )){
+            return false;
+        }
+        ParsedRelationshipBlock otherBlock = (ParsedRelationshipBlock) obj;
+
+        return otherBlock.minLength == minLength &&
+                otherBlock.maxLength == maxLength &&
+                otherBlock.direction == direction &&
+                CollectionUtils.isEqualCollection(leftLabels, otherBlock.leftLabels) &&
+                CollectionUtils.isEqualCollection(rightLabels, otherBlock.rightLabels) &&
+                CollectionUtils.isEqualCollection(types, otherBlock.types);
+
+    }
+
+    public String hashableString(){
+        return labels(leftLabels) + direction + minLength + maxLength + labels( rightLabels ) + labels(types);
+    }
+
+    private ParsedRelationshipBlock getClone(){
+        try
+        {
+            ParsedRelationshipBlock clone = (ParsedRelationshipBlock) this.clone();
+            return clone;
+        }
+        catch ( CloneNotSupportedException e )
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

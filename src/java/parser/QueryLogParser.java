@@ -51,7 +51,16 @@ public class QueryLogParser
                 {
                     queriesMappedByCypherString.put( query.cypherQuery, new ArrayList<>() );
                 }
-                queriesMappedByCypherString.get( query.cypherQuery ).add( query );
+                List<QueryLogEntry> list = queriesMappedByCypherString.get( query.cypherQuery );
+                list.add( query );
+
+                // We don't need these any more, these are now the keys in the map. Deleting these will save a lot of RAM!
+                // We do save it for the first item in the list, for ease of access.
+                if ( list.size() != 1){
+                    query.cypherQuery = null;
+                    query.query = null;
+                }
+
             }
         }
         return queriesMappedByCypherString;

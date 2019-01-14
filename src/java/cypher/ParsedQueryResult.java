@@ -9,24 +9,24 @@ import org.neo4j.cypher.internal.v4_0.expressions.HasLabels;
 import org.neo4j.cypher.internal.v4_0.expressions.LabelName;
 import scala.collection.JavaConversions;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ParsedQueryResult
 {
-    private String string;
+    private List<ParsedRelationshipBlock> blocks = new ArrayList<>();
+    Map<String, List<String>> queryGraph = new HashMap<>();
+    Map<String, List<ParsedRelationshipBlock>> blocksConnectedToNode = new HashMap<>();
 
     public ParsedQueryResult(  Tuple2<Set<PatternRelationship>,Set<Expression>> tuple2 )
     {
-        generateString( tuple2 );
+        convertToParsedRelBlocks( tuple2._1(), tuple2._2() );
     }
 
-    private void generateString( Tuple2<Set<PatternRelationship>,Set<Expression>> tuple2 ){
-        Set<PatternRelationship> patternRelationshipSet = tuple2._1;
-        Set<Expression> expressionSet = tuple2._2;
+    private void convertToParsedRelBlocks( Set<PatternRelationship> patternRelationshipSet, Set<Expression> expressionSet ){
         AnonMapper.resetForNames();
-        string = "";
 
         Map<String, List<String>> nodesAndTheirLabels = new HashMap<>();
 
@@ -41,18 +41,211 @@ public class ParsedQueryResult
                 }
                 nodesAndTheirLabels.put( nodeName, labels );
 
-            }else{
+            } else {
                 System.out.println("[ERROR] Parsed query expression contains something else than HasLabels!");
             }
         }
         for ( PatternRelationship patternRelationship : JavaConversions.asJavaIterable( patternRelationshipSet) )
         {
             ParsedRelationshipBlock block = new ParsedRelationshipBlock( patternRelationship, nodesAndTheirLabels );
-            string +=  block.toAnonymyzedString() + "    ";
+            this.blocks.add( block );
+        }
+
+        for (  ParsedRelationshipBlock block : blocks )
+        {
+            // Create an internal tree-like representation for the query graph.
+            if ( !queryGraph.containsKey( block.leftNodeName ) )
+            {
+                queryGraph.put( block.leftNodeName, new ArrayList<>() );
+                blocksConnectedToNode.put( block.leftNodeName, new ArrayList<>() );
+            }
+            if ( !queryGraph.containsKey( block.rightNodeName ) )
+            {
+                queryGraph.put( block.rightNodeName, new ArrayList<>() );
+                blocksConnectedToNode.put( block.rightNodeName, new ArrayList<>() );
+            }
+            queryGraph.get( block.leftNodeName ).add( block.rightNodeName );
+            queryGraph.get( block.rightNodeName ).add( block.leftNodeName );
+            blocksConnectedToNode.get( block.rightNodeName ).add( block );
+            blocksConnectedToNode.get( block.leftNodeName).add( block );
         }
     }
+
     public String toString(){
+        String string = "";
+        for ( ParsedRelationshipBlock block : blocks )
+            string +=  block.toAnonymyzedString() + "    ";
+
         return string;
+    }
+
+    public String countMaxJoins(){
+        int count = 0;
+        for (  ParsedRelationshipBlock block : blocks ){
+            count += block.getMaxLength();
+        }
+
+        // It has an RPQ.
+        if ( count >= 10000 ){
+            return "*";
+        }
+        return "" + count;
+    }
+
+    public String countMinJoins(){
+        int count = 0;
+        for (  ParsedRelationshipBlock block : blocks ){
+            count += block.getMinLength();
+        }
+        return "" + count;
+    }
+
+    public int isChainQuery(){
+        for ( List<String> connected : queryGraph.values()){
+            if ( connected.size() > 2){
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+
+    public int hasAnyEdgeInQuery()
+    {
+        if ( blocks.size() == 0 )
+        {
+            return 0;
+        }
+        return 1;
+    }
+    public int isSingleEdgeQuery(){
+        if ( blocks.size() > 1 || blocks.size() == 0){
+            return 0;
+        }
+        if ( blocks.get( 0 ).getMaxLength() > 1){
+            return 0;
+        }
+        // there is a single edge with length one.
+        return 1;
+    }
+
+
+    public int isTree(){
+        List<String> seen = new ArrayList<>();
+
+        if ( blocks.size() == 0 ){
+            return 1;
+        }
+        boolean hasLoops = simpleBFSfindLoops( seen, null, blocks.get( 0 ).rightNodeName );
+
+        // Trees can't have loops.
+        if ( hasLoops == true) {
+            return 0;
+        }
+        // Our BFS has seen all nodes ----> It's a tree
+        Object[] a = seen.toArray();
+        Object[] b = queryGraph.keySet().toArray();
+        Arrays.sort( a );
+        Arrays.sort( b );
+        if ( Arrays.equals( a, b )){
+            return 1;
+        }
+        return 0;
+    }
+
+    public int hasLoops(){
+        List<String> seen = new ArrayList<>();
+
+        if ( blocks.size() == 0 ){
+            return 0;
+        }
+        boolean hasLoops = simpleBFSfindLoops( seen, null, blocks.get( 0 ).leftNodeName );
+        if ( hasLoops ){
+            return 1;
+        }
+        return 0;
+    }
+
+    private boolean simpleBFSfindLoops( List<String> seen, String prevNode, String current ){
+        if ( seen.contains( current )){
+            return true;
+        }
+        seen.add( current );
+        for ( String connected : queryGraph.get( current )){
+            if ( connected.equals( prevNode )){
+                continue;
+            }
+            if ( simpleBFSfindLoops( seen, current, connected ) == true ){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<ParsedRelationshipBlockChain> chainBuildingBFS( List<ParsedRelationshipBlockChain> chainsComingIntoStartNode, String startNode, int depth ){
+
+//        System.out.println( startNode +  " : " + depth );
+//        for ( ParsedRelationshipBlockChain chain : chainsComingIntoStartNode ){
+//            System.out.println(chain.toAnonPatternString());
+//        }
+//        System.out.println();
+        if ( depth == 0 )
+        {
+            return chainsComingIntoStartNode;
+        }
+
+        List<ParsedRelationshipBlockChain> theNewChains = new ArrayList<>(  );
+        for ( ParsedRelationshipBlock block : blocksConnectedToNode.get( startNode )){
+
+            // reverse it? maybe?
+            ParsedRelationshipBlock blockCopy = ( block.rightNodeName == startNode ) ?
+                    new ParsedRelationshipBlock( block.rightNodeName, block.rightLabels, block.relName, block.types, block.leftLabels, block.leftNodeName, block.direction.reversed(), block.getMinLength(), block.getMaxLength() ) :
+                    new ParsedRelationshipBlock( block.leftNodeName, block.leftLabels, block.relName, block.types, block.rightLabels, block.rightNodeName, block.direction, block.getMinLength(), block.getMaxLength() );
+
+            blockCopy.anonymyzeLabelsAndTypes();
+            List<ParsedRelationshipBlockChain> newChains = new ArrayList<>(  );
+            for (ParsedRelationshipBlockChain chain : chainsComingIntoStartNode ){
+                if ( ! chain.relIds.contains( block.relName )){
+                    newChains.add( new ParsedRelationshipBlockChain( chain, blockCopy ) );
+                }
+            }
+
+            String otherNodeID = (block.leftNodeName == startNode ) ? block.rightNodeName : block.leftNodeName;
+            theNewChains.addAll( chainBuildingBFS( newChains, otherNodeID, depth - 1 ) );
+        }
+        //chainsComingIntoStartNode.addAll( newChains );
+        theNewChains.addAll( chainsComingIntoStartNode );
+        return theNewChains;
+    }
+
+    /**
+     * Find all linear (chain-shaped) subpatterns in a graph, given a maximum length.
+     * @param maxSubPatternSize
+     * @return
+     */
+    public List<ParsedRelationshipBlockChain> getAllSubPatternsInQueryGraph( int maxSubPatternSize ){
+        List<ParsedRelationshipBlockChain> allBlocksInGraph = new ArrayList<>();
+
+
+
+        for ( String nodeName : blocksConnectedToNode.keySet() )
+        {
+            List<ParsedRelationshipBlockChain> emptyArrayList = new ArrayList<>( );
+            emptyArrayList.add( new ParsedRelationshipBlockChain(  ) );
+            allBlocksInGraph.addAll ( chainBuildingBFS( emptyArrayList, nodeName, maxSubPatternSize ));
+        }
+
+//        for ( ParsedRelationshipBlock block : blocks ){
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( block ));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, block.types, block.rightLabels, block.direction )));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( block.leftLabels, emptyArrayList, block.rightLabels, block.direction )));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( block.leftLabels, block.types, emptyArrayList, block.direction )));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, block.types, emptyArrayList, block.direction )));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, emptyArrayList, block.rightLabels, block.direction )));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( block.leftLabels, emptyArrayList, emptyArrayList, block.direction )));
+//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, emptyArrayList, emptyArrayList, block.direction )));
+//        }
+        return allBlocksInGraph;
     }
 }
 

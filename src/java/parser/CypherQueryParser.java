@@ -28,15 +28,15 @@ public class CypherQueryParser
         if ( !tryParseLineInLog( fileName, entireLine, query ) )
             return new QueryLogEntry();
 
-        // If we stumble upon an EXPLAIN or a PROFILE, we skip this line too.
-        if ( query.cypherQuery == null || query.cypherQuery.startsWith( "profile" ) || query.cypherQuery.startsWith( "explain") || query.cypherQuery.startsWith( "EXPLAIN" )){
-            System.out.println("[PARSER] ERROR! QUERY CONTAINS EXPLAIN/PROFILE KEYWORD: " + query.cypherQuery);
-            return query;
-        }
         // Parse the cypher bit of the log entry.
         parseCypher( fileName, query );
 
-        // TODO: Make shorter? query.cypherQuery = query.cypherQuery.substring( 0, Math.min(query.cypherQuery.length(), 100) );
+        // Now that the query is parsed, we can do other things, e.g. count the number of relationships.
+        if ( query.parsed != null) {
+            query.maxQueryGraphSize = query.parsed.countMaxJoins();
+            query.minQueryGraphSize = query.parsed.countMinJoins();
+        }
+
         return query;
     }
 
@@ -81,15 +81,14 @@ public class CypherQueryParser
             query.user = "";
 
 
-        getActualCypher( query );
-        query.relCount = getRelCount( query );
-        getQueryExecutionTime( query );
+        query.cypherQuery = getActualCypher( query );
+        query.executionTime = getQueryExecutionTime( query );
         return true;
     }
 
     // The string 'query.query' will have this shape: "$user - MATCH (n) RETURN (n) - {} - {}"
     // We filter out the actual cypher from this bit.
-    private void getActualCypher( QueryLogEntry query )
+    private String getActualCypher( QueryLogEntry query )
     {
         String partOfQueryAfterUserInfo;
         if ( query.query.split( query.user + " - ").length == 2){
@@ -97,22 +96,18 @@ public class CypherQueryParser
         } else {
             partOfQueryAfterUserInfo = query.query.split( " - ")[1];
         }
-        query.cypherQuery = partOfQueryAfterUserInfo.split( "- \\{" )[0];
+        return partOfQueryAfterUserInfo.split( "- \\{" )[0];
     }
 
-    private int getRelCount( QueryLogEntry query )
-    {
-        return query.cypherQuery.split( "\\[" ).length - 1 +  query.cypherQuery.split( "--" ).length - 1;
-    }
-
-    private void getQueryExecutionTime( QueryLogEntry query )
+    private int getQueryExecutionTime( QueryLogEntry query )
     {
         String[] secondSplit = query.timeStampAndRuntimeInfo.split( " INFO  " );
         if ( secondSplit.length > 1)
         {
             String millsecondsAsString = secondSplit[1].split( " ms: " )[0];
-            query.executionTime = Integer.parseInt( millsecondsAsString );
+            return Integer.parseInt( millsecondsAsString );
         }
+        return 0;
     }
 
     private void parseCypher( String fileName, QueryLogEntry query )
@@ -136,7 +131,7 @@ public class CypherQueryParser
             cache.put( query.cypherQuery, parsedQueryResult );
         } catch ( Exception e ){
             // Sometimes a ' character disappears in some of the logs, so just retry with this extra character...
-            if ( !query.cypherQuery.endsWith( "'" )){
+            if ( query.cypherQuery != null && !query.cypherQuery.endsWith( "'" )){
                 query.cypherQuery += "'";
                 return getParsedQueryResult( fileName, query, parsedQueryResult );
             }
