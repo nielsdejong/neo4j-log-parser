@@ -16,12 +16,12 @@ import org.neo4j.cypher.internal.v4_0.expressions.SemanticDirection;
 
 public class ParsedRelationshipBlock
 {
-    public String leftNodeName;
-    public List<String> leftLabels;
-    public String rightNodeName;
-    public List<String> rightLabels;
-    public String relName;
-    public List<String> types = new ArrayList<>();
+    public final String leftNodeName;
+    public final List<String> leftLabels;
+    public final String rightNodeName;
+    public final List<String> rightLabels;
+    public final String relName;
+    public final List<String> types;
 
     private String anonLeftNode;
     public List<String> anonLeftLabels = new ArrayList<>();
@@ -30,7 +30,7 @@ public class ParsedRelationshipBlock
     private String anonRelName;
     public List<String> anonTypes = new ArrayList<>();
 
-    public SemanticDirection direction;
+    public final SemanticDirection direction;
 
     public int getMinLength()
     {
@@ -48,6 +48,7 @@ public class ParsedRelationshipBlock
     public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels, String relName, List<String> types, List<String> rightLabels, String rightNodeName, SemanticDirection direction, int minLength, int maxLength ){
         this.leftLabels = leftLabels;
         this.rightLabels = rightLabels;
+
         this.types = types;
         this.direction = direction;
 
@@ -57,23 +58,29 @@ public class ParsedRelationshipBlock
 
         this.minLength = minLength;
         this.maxLength = maxLength;
+
+        anonymyzeLabelsAndTypes();
     }
 
     public ParsedRelationshipBlock ( PatternRelationship patternRelationship, Map<String, List<String>> nodeLabelMap )
     {
         this.leftNodeName = patternRelationship.left();
         this.rightNodeName = patternRelationship.right();
-        this.leftLabels = nodeLabelMap.get( leftNodeName );
-        this.rightLabels = nodeLabelMap.get( rightNodeName );
-        if ( leftLabels == null ){
+
+        if ( nodeLabelMap.containsKey( leftNodeName ))
+            leftLabels = nodeLabelMap.get( leftNodeName );
+        else
             leftLabels = new ArrayList<>( );
-        }
-        if ( rightLabels == null ){
+
+        if ( nodeLabelMap.containsKey( rightNodeName ))
+            rightLabels = nodeLabelMap.get( rightNodeName );
+        else
             rightLabels = new ArrayList<>( );
-        }
+
         this.direction = patternRelationship.dir();
         this.relName = patternRelationship.name();
         PatternLength patternLength = patternRelationship.length();
+
         if ( patternLength instanceof VarPatternLength ){
             VarPatternLength varPatternLength = (VarPatternLength) patternLength;
             minLength = varPatternLength.min();
@@ -83,8 +90,10 @@ public class ParsedRelationshipBlock
             }
 
         }
+        types = new ArrayList<>(  );
         for ( RelTypeName relTypeName : JavaConversions.asJavaIterable( patternRelationship.types()) )
             types.add( relTypeName.name() );
+
 
         anonymyzeLabelsAndTypes();
     }
@@ -148,8 +157,9 @@ public class ParsedRelationshipBlock
     public void anonymyzeLabelsAndTypes(){
 
         // Anonimyze the labels and types.
-        for ( String type : types )
-            anonTypes.add( AnonMapper.getRelType( type ) );
+        if ( types != null )
+            for ( String type : types )
+                anonTypes.add( AnonMapper.getRelType( type ) );
 
         if ( leftLabels != null)
             for ( String leftLabel : leftLabels )

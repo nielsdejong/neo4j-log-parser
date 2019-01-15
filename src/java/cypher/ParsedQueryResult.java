@@ -197,16 +197,31 @@ public class ParsedQueryResult
         List<ParsedRelationshipBlockChain> theNewChains = new ArrayList<>(  );
         for ( ParsedRelationshipBlock block : blocksConnectedToNode.get( startNode )){
 
-            // reverse it? maybe?
+            // reverse if if it's reversely connected to the end of the chain.
             ParsedRelationshipBlock blockCopy = ( block.rightNodeName == startNode ) ?
                     new ParsedRelationshipBlock( block.rightNodeName, block.rightLabels, block.relName, block.types, block.leftLabels, block.leftNodeName, block.direction.reversed(), block.getMinLength(), block.getMaxLength() ) :
                     new ParsedRelationshipBlock( block.leftNodeName, block.leftLabels, block.relName, block.types, block.rightLabels, block.rightNodeName, block.direction, block.getMinLength(), block.getMaxLength() );
 
-            blockCopy.anonymyzeLabelsAndTypes();
+            // Store also the version with missing node labels.
+            ParsedRelationshipBlock blockCopyWithoutLeftLabels = new ParsedRelationshipBlock( blockCopy.leftNodeName, new ArrayList<>(), blockCopy.relName, blockCopy.types, blockCopy.rightLabels, blockCopy.rightNodeName, blockCopy.direction, blockCopy.getMinLength(), blockCopy.getMaxLength() );
+            ParsedRelationshipBlock blockCopyWithoutRightLabels = new ParsedRelationshipBlock( blockCopy.leftNodeName, blockCopy.leftLabels, blockCopy.relName, blockCopy.types, new ArrayList<>(), blockCopy.rightNodeName, blockCopy.direction, blockCopy.getMinLength(), blockCopy.getMaxLength() );
+            ParsedRelationshipBlock blockCopyWithoutEitherLabels = new ParsedRelationshipBlock( blockCopy.leftNodeName, new ArrayList<>(), blockCopy.relName, blockCopy.types, new ArrayList<>(), blockCopy.rightNodeName, blockCopy.direction, blockCopy.getMinLength(), blockCopy.getMaxLength() );
+
             List<ParsedRelationshipBlockChain> newChains = new ArrayList<>(  );
             for (ParsedRelationshipBlockChain chain : chainsComingIntoStartNode ){
-                if ( ! chain.relIds.contains( block.relName )){
-                    newChains.add( new ParsedRelationshipBlockChain( chain, blockCopy ) );
+                if ( ! chain.relIds.contains( block.relName ) && ! chain.nodeIds.contains( block.rightNodeName) ){
+                    newChains.add( new ParsedRelationshipBlockChain( chain, blockCopy ));
+
+                    if ( blockCopy.leftLabels.size() > 0 && chain.chain.size() == 0 ) {
+                        newChains.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutLeftLabels ) );
+
+                        if ( blockCopy.rightLabels.size() > 0){
+                            newChains.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutEitherLabels ) );
+                        }
+                    }
+
+                    if ( blockCopy.rightLabels.size() > 0 )
+                        newChains.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutRightLabels) );
                 }
             }
 

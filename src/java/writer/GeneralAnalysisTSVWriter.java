@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
-public class PatternTSVWriter
+public class GeneralAnalysisTSVWriter
 {
     public static void writeParsedLog( String name, Map<String,List<QueryLogEntry>> queries )
     {
