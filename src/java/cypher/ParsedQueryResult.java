@@ -159,11 +159,22 @@ public class ParsedQueryResult
         if ( blocks.size() == 0 ){
             return 0;
         }
-        boolean hasLoops = simpleBFSfindLoops( seen, null, blocks.get( 0 ).leftNodeName );
-        if ( hasLoops ){
-            return 1;
+
+        // If it's a forest, every one of the trees could have loopsl
+        if ( isTree() == 0){
+            for ( ParsedRelationshipBlock block : blocks )
+            {
+                boolean hasLoops = simpleBFSfindLoops( seen, null, block.leftNodeName );
+                if ( hasLoops ){
+                    return 1;
+                }
+            }
+            return 0;
+        }else{
+            // If a tree, then no loops
+            return 0;
         }
-        return 0;
+        
     }
 
     private boolean simpleBFSfindLoops( List<String> seen, String prevNode, String current ){

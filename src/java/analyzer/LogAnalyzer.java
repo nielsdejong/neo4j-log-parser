@@ -24,8 +24,8 @@ public class LogAnalyzer
     private String[] folderNamesToIgnore = {"Ericsson"};
 
     public static void main(String[] args) {
-        //new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/5647/" );
-        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/Homeaway-6224" );
+        //new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/" );
+        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/WesternUnion-5705/3" ); // gets stuck somehow
         //new LogAnalyzer().processTestQueryStrings();
     }
 

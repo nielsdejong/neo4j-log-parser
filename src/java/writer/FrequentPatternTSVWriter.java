@@ -26,7 +26,7 @@ public class FrequentPatternTSVWriter
 
             for ( Map.Entry<String, List<QueryLogEntry>> entry : queryMap.entrySet() )
             {
-                //System.out.println(entry.getKey());
+                System.out.println(entry.getKey());
                 if ( entry.getValue().size() == 0 || entry.getValue().get( 0 ).parsed == null ){
                     continue;
                 }
