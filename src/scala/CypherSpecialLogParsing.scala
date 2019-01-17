@@ -73,7 +73,7 @@ class CypherSpecialLogParsing {
       useErrorsOverWarnings = false,
       idpMaxTableSize = 128,
       idpIterationDuration = 1000,
-      errorIfShortestPathFallbackUsedAtRuntime = false,
+      errorIfShortestPathFallbackUsedNeo4j 3.5's AtRuntime = false,
       errorIfShortestPathHasCommonNodesAtRuntime = false,
       legacyCsvQuoteEscaping = false,
       csvBufferSize = 2 * 1024 * 1024,

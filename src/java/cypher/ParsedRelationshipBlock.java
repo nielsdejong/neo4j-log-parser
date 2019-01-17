@@ -48,14 +48,27 @@ public class ParsedRelationshipBlock
     public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels, String relName, List<String> types, List<String> rightLabels, String rightNodeName, SemanticDirection direction, int minLength, int maxLength ){
         this.leftLabels = leftLabels;
         this.rightLabels = rightLabels;
-
         this.types = types;
         this.direction = direction;
-
         this.leftNodeName = leftNodeName;
         this.relName = relName;
         this.rightNodeName = rightNodeName;
+        this.minLength = minLength;
+        this.maxLength = maxLength;
 
+        anonymyzeLabelsAndTypes();
+    }
+
+    public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels, String relName, String type, List<String> rightLabels, String rightNodeName, SemanticDirection direction, int minLength, int maxLength ){
+        List<String> types = new ArrayList<>();
+        types.add( type );
+        this.leftLabels = leftLabels;
+        this.rightLabels = rightLabels;
+        this.types = types;
+        this.direction = direction;
+        this.leftNodeName = leftNodeName;
+        this.relName = relName;
+        this.rightNodeName = rightNodeName;
         this.minLength = minLength;
         this.maxLength = maxLength;
 

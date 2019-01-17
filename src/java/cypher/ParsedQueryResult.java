@@ -18,7 +18,7 @@ public class ParsedQueryResult
 {
     private List<ParsedRelationshipBlock> blocks = new ArrayList<>();
     Map<String, List<String>> queryGraph = new HashMap<>();
-    Map<String, List<ParsedRelationshipBlock>> blocksConnectedToNode = new HashMap<>();
+    public Map<String, List<ParsedRelationshipBlock>> blocksConnectedToNode = new HashMap<>();
 
     public ParsedQueryResult(  Tuple2<Set<PatternRelationship>,Set<Expression>> tuple2 )
     {
@@ -193,85 +193,6 @@ public class ParsedQueryResult
         return false;
     }
 
-    private List<ParsedRelationshipBlockChain> chainBuildingBFS( List<ParsedRelationshipBlockChain> chainsComingIntoStartNode, String startNode, int depth ){
 
-//        System.out.println( startNode +  " : " + depth );
-//        for ( ParsedRelationshipBlockChain chain : chainsComingIntoStartNode ){
-//            System.out.println(chain.toAnonPatternString());
-//        }
-//        System.out.println();
-        if ( depth == 0 )
-        {
-            return chainsComingIntoStartNode;
-        }
-
-        List<ParsedRelationshipBlockChain> theNewChains = new ArrayList<>(  );
-        for ( ParsedRelationshipBlock block : blocksConnectedToNode.get( startNode )){
-
-            // reverse if if it's reversely connected to the end of the chain.
-            ParsedRelationshipBlock blockCopy = ( block.rightNodeName == startNode ) ?
-                    new ParsedRelationshipBlock( block.rightNodeName, block.rightLabels, block.relName, block.types, block.leftLabels, block.leftNodeName, block.direction.reversed(), block.getMinLength(), block.getMaxLength() ) :
-                    new ParsedRelationshipBlock( block.leftNodeName, block.leftLabels, block.relName, block.types, block.rightLabels, block.rightNodeName, block.direction, block.getMinLength(), block.getMaxLength() );
-
-            // Store also the version with missing node labels.
-            ParsedRelationshipBlock blockCopyWithoutLeftLabels = new ParsedRelationshipBlock( blockCopy.leftNodeName, new ArrayList<>(), blockCopy.relName, blockCopy.types, blockCopy.rightLabels, blockCopy.rightNodeName, blockCopy.direction, blockCopy.getMinLength(), blockCopy.getMaxLength() );
-            ParsedRelationshipBlock blockCopyWithoutRightLabels = new ParsedRelationshipBlock( blockCopy.leftNodeName, blockCopy.leftLabels, blockCopy.relName, blockCopy.types, new ArrayList<>(), blockCopy.rightNodeName, blockCopy.direction, blockCopy.getMinLength(), blockCopy.getMaxLength() );
-            ParsedRelationshipBlock blockCopyWithoutEitherLabels = new ParsedRelationshipBlock( blockCopy.leftNodeName, new ArrayList<>(), blockCopy.relName, blockCopy.types, new ArrayList<>(), blockCopy.rightNodeName, blockCopy.direction, blockCopy.getMinLength(), blockCopy.getMaxLength() );
-
-            List<ParsedRelationshipBlockChain> newChains = new ArrayList<>(  );
-            for (ParsedRelationshipBlockChain chain : chainsComingIntoStartNode ){
-                if ( ! chain.relIds.contains( block.relName ) && ! chain.nodeIds.contains( block.rightNodeName) ){
-                    newChains.add( new ParsedRelationshipBlockChain( chain, blockCopy ));
-
-                    if ( blockCopy.leftLabels.size() > 0 && chain.chain.size() == 0 ) {
-                        newChains.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutLeftLabels ) );
-
-                        if ( blockCopy.rightLabels.size() > 0){
-                            newChains.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutEitherLabels ) );
-                        }
-                    }
-
-                    if ( blockCopy.rightLabels.size() > 0 )
-                        newChains.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutRightLabels) );
-                }
-            }
-
-            String otherNodeID = (block.leftNodeName == startNode ) ? block.rightNodeName : block.leftNodeName;
-            theNewChains.addAll( chainBuildingBFS( newChains, otherNodeID, depth - 1 ) );
-        }
-        //chainsComingIntoStartNode.addAll( newChains );
-        theNewChains.addAll( chainsComingIntoStartNode );
-        return theNewChains;
-    }
-
-    /**
-     * Find all linear (chain-shaped) subpatterns in a graph, given a maximum length.
-     * @param maxSubPatternSize
-     * @return
-     */
-    public List<ParsedRelationshipBlockChain> getAllSubPatternsInQueryGraph( int maxSubPatternSize ){
-        List<ParsedRelationshipBlockChain> allBlocksInGraph = new ArrayList<>();
-
-
-
-        for ( String nodeName : blocksConnectedToNode.keySet() )
-        {
-            List<ParsedRelationshipBlockChain> emptyArrayList = new ArrayList<>( );
-            emptyArrayList.add( new ParsedRelationshipBlockChain(  ) );
-            allBlocksInGraph.addAll ( chainBuildingBFS( emptyArrayList, nodeName, maxSubPatternSize ));
-        }
-
-//        for ( ParsedRelationshipBlock block : blocks ){
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( block ));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, block.types, block.rightLabels, block.direction )));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( block.leftLabels, emptyArrayList, block.rightLabels, block.direction )));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( block.leftLabels, block.types, emptyArrayList, block.direction )));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, block.types, emptyArrayList, block.direction )));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, emptyArrayList, block.rightLabels, block.direction )));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( block.leftLabels, emptyArrayList, emptyArrayList, block.direction )));
-//            allBlocksInGraph.add( new ParsedRelationshipBlockChain ( new ParsedRelationshipBlock( emptyArrayList, emptyArrayList, emptyArrayList, block.direction )));
-//        }
-        return allBlocksInGraph;
-    }
 }
 

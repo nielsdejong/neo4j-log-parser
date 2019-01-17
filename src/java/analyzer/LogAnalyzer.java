@@ -21,12 +21,12 @@ import org.neo4j.cypher.internal.v4_0.expressions.Expression;
 
 public class LogAnalyzer
 {
-    private String[] folderNamesToIgnore = {"Ericsson"};
+    // These should be LOWERCASE!
+    private String[] folderNamesToIgnore = {"ericsson", "ignore_me"};
 
     public static void main(String[] args) {
         //new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/" );
-        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/WesternUnion-5705/3" ); // gets stuck somehow
-        //new LogAnalyzer().processTestQueryStrings();
+        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/" );
     }
 
     private void processLogFilesInFolder( String logFolder ){
@@ -37,10 +37,12 @@ public class LogAnalyzer
         Map<String, List<String>> fileNamesPerFolder = new QueryLogFileCollector().getAllFilesInFolder( new HashMap<>(), logFolder, folderNamesToIgnore );
         System.out.println( "[LOG COLLECTOR] "+fileNamesPerFolder.size() + " log folders found." );
 
-
         QueryLogFileReader reader = new QueryLogFileReader();
         QueryLogParser parser = new QueryLogParser();
+
         for ( Map.Entry<String, List<String>> entry : fileNamesPerFolder.entrySet() ){
+            // Make a friendly name for the results
+            String name = entry.getKey().substring( logFolder.length() ).replace( "/", "-" );
 
             System.out.println( "[LOG READER] Reading log files of " + entry.getKey());
             List<String> lines = reader.readAllFilesInSingleFolder( entry.getKey(), entry.getValue() );
@@ -49,21 +51,12 @@ public class LogAnalyzer
             Map<String,List<QueryLogEntry>> queriesByCypherString = parser.parseAllQueriesInSingleFolder( entry.getKey(), lines );
 
             System.out.println( "[WRITER] Writing output of " + entry.getKey());
-
-            // Make a friendly name for the results
-            String name = entry.getKey().substring( logFolder.length() ).replace( "/", "-" );
-
-            // Write general analysis results.
             GeneralAnalysisTSVWriter.writeParsedLog( name, queriesByCypherString );
 
-            System.out.println( "[WRITER] Doing frequent subpattern analysis..." + entry.getKey());
-
-            // Write frequent subpattern analysis results.
+            System.out.println( "[WRITER] Doing frequent subpattern analysis..." );
             FrequentPatternTSVWriter.writeParsedLog( name, queriesByCypherString);
 
             System.out.println("[SUMMARY] Printing summary..." );
-
-            // Print a summary.
             SummaryPrinter.printSummary( logFolder + name, queriesByCypherString);
             System.out.println();
         }

@@ -1,6 +1,7 @@
 package reader;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class QueryLogFileCollector
                     fileNames.get( folderLocation ).add (listOfFile.getAbsolutePath());
                 }
             }else{
-                if ( !listOfFile.getName().toLowerCase().contains( namesToIgnore[0].toLowerCase())) {
+                if ( !StringUtils.containsAny( listOfFile.getAbsolutePath().toLowerCase(), namesToIgnore)) {
                     fileNames.putAll( getAllFilesInFolder( fileNames, listOfFile.getAbsolutePath(), namesToIgnore ) );
                 }
             }

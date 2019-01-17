@@ -10,9 +10,9 @@ public class ParsedRelationshipBlockChain
 
     public int nonEmptyNodesWithLabels = 0;
 
-    List<ParsedRelationshipBlock> chain = new ArrayList<>();
-    List<String> relIds = new ArrayList<>();
-    List<String> nodeIds = new ArrayList<>();
+    public List<ParsedRelationshipBlock> chain = new ArrayList<>();
+    public List<String> relIds = new ArrayList<>();
+    public List<String> nodeIds = new ArrayList<>();
 
     public ParsedRelationshipBlockChain ( ParsedRelationshipBlock... blocks ){
         for ( ParsedRelationshipBlock block : blocks )
@@ -22,17 +22,31 @@ public class ParsedRelationshipBlockChain
             nodeIds.add( block.leftNodeName );
         }
     }
-    public ParsedRelationshipBlockChain ( ParsedRelationshipBlockChain oldChain, ParsedRelationshipBlock newBlock ){
+    public ParsedRelationshipBlockChain ( ParsedRelationshipBlockChain oldChain, ParsedRelationshipBlock newBlock, int nrOfCopies, ParsedRelationshipBlock blockCopyWithoutLeftLabels, ParsedRelationshipBlock blockCopyWithoutEitherLabels, ParsedRelationshipBlock blockCopyWithoutRightLabels ){
        chain.addAll( oldChain.chain );
        relIds.addAll( oldChain.relIds );
-       chain.add( newBlock );
-       nodeIds.add( newBlock.leftNodeName );
-       relIds.add( newBlock.relName );
+        for ( int i = 0; i < nrOfCopies; i++ )
+        {
+            // Dealing with tricky var length patterns
+            ParsedRelationshipBlock blockToAdd;
+            if ( nrOfCopies == 1)
+                blockToAdd = newBlock;
+            else if ( i == 0)
+                blockToAdd = blockCopyWithoutRightLabels;
+            else if ( i == nrOfCopies - 1)
+                blockToAdd = blockCopyWithoutLeftLabels;
+            else
+                blockToAdd = blockCopyWithoutEitherLabels;
 
-       nonEmptyNodesWithLabels = oldChain.nonEmptyNodesWithLabels;
-       if ( !newBlock.rightLabels.isEmpty() ){
-           nonEmptyNodesWithLabels += 1;
-       }
+            chain.add( blockToAdd );
+            nodeIds.add( blockToAdd.leftNodeName );
+            relIds.add( blockToAdd.relName );
+
+            nonEmptyNodesWithLabels = oldChain.nonEmptyNodesWithLabels;
+            if ( !blockToAdd.rightLabels.isEmpty() ){
+                nonEmptyNodesWithLabels += 1;
+            }
+        }
     }
     @Override
     public int hashCode(){

@@ -1,6 +1,7 @@
 package writer;
 
 import cypher.ParsedRelationshipBlockChain;
+import cypher.structure.SubGraphGenerator;
 import parser.QueryLogEntry;
 
 import java.io.BufferedWriter;
@@ -17,6 +18,7 @@ public class FrequentPatternTSVWriter
     {
         try
         {
+            SubGraphGenerator subGraphGenerator = new SubGraphGenerator();
             String seperator = " \t ";
             BufferedWriter writer = new BufferedWriter( new PrintWriter( "pattern_output/"+name+".tsv" ) );
             writer.write( "pattern \t count");
@@ -24,23 +26,25 @@ public class FrequentPatternTSVWriter
 
             Map<ParsedRelationshipBlockChain, Integer> seenBlockChainsWithCount = new HashMap<>(  );
 
+            System.out.println("Total queries to find subgraphs from: " + queryMap.entrySet().size());
+            int count = 0;
             for ( Map.Entry<String, List<QueryLogEntry>> entry : queryMap.entrySet() )
             {
-                System.out.println(entry.getKey());
+                System.out.print(".");
                 if ( entry.getValue().size() == 0 || entry.getValue().get( 0 ).parsed == null ){
                     continue;
                 }
 
-                for ( ParsedRelationshipBlockChain block : entry.getValue().get( 0 ).parsed.getAllSubPatternsInQueryGraph( 5 ) ){
+                for ( ParsedRelationshipBlockChain block : subGraphGenerator.getAllSubPatternsInQueryGraph( entry.getValue().get( 0 ).parsed,  5 ) ){
                     if ( ! seenBlockChainsWithCount.containsKey( block ) ){
                         seenBlockChainsWithCount.put( block, 0 );
                     }
                     // We see these block chains for a cypher query, and the query occurs X times, therefore we see the block (in total) X times.
                     seenBlockChainsWithCount.put(block, seenBlockChainsWithCount.get( block ) + (entry.getValue().size()) );
                 }
-
             }
 
+            System.out.println();
 
             // Sort the output in a nice way
             Object[] array = seenBlockChainsWithCount.entrySet().toArray();
