@@ -1,4 +1,4 @@
-package cypher;
+package analyzer.cypher;
 
 import org.apache.commons.collections.ListUtils;
 

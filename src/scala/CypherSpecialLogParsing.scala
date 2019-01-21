@@ -105,8 +105,7 @@ class CypherSpecialLogParsing {
 
     })
     foldableAny.findByAllClass[DeleteExpression].foreach(pattern => {
-      //patterns += pattern.expression.
-      //???
+      // this can't actually have patterns, I think
     })
     foldableAny.findByAllClass[HasLabels].foreach(pattern => {
       hasLabels += pattern
@@ -118,7 +117,7 @@ class CypherSpecialLogParsing {
     foldableAny.findByAllClass[PatternExpression].foreach(pattern => {
       var element = pattern.pattern.element
 
-      // This hacky piece of code makes sure that we can name unspecified nodes in pattern expressions, which is not done by the parser...
+      // This hacky piece of code makes sure that we can name unspecified nodes in pattern expressions, which is not done by the analyzer.parser...
       var start = if ( element.variable != None ) element.variable.get.name else {counter += 1; tempName + counter }
       var end = if ( element.rightNode.variable != None ) element.rightNode.variable.get.name else { counter += 1; tempName + counter }
 

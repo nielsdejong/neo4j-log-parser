@@ -1,6 +1,6 @@
-package parser;
+package analyzer.parser;
 
-import cypher.ParsedQueryResult;
+import analyzer.cypher.ParsedQueryResult;
 
 import java.util.Map;
 
@@ -28,7 +28,7 @@ public class CypherQueryParser
         if ( !tryParseLineInLog( fileName, entireLine, query ) )
             return new QueryLogEntry();
 
-        // Parse the cypher bit of the log entry.
+        // Parse the analyzer.cypher bit of the log entry.
         parseCypher( fileName, query );
 
         // Now that the query is parsed, we can do other things, e.g. count the number of relationships.
@@ -51,7 +51,7 @@ public class CypherQueryParser
     {
         String[] querySplitByTabs = entireLine.split("\t");
         if ( querySplitByTabs.length == 1 ) {
-            printParsingError( fileName, entireLine );
+            printParsingError( fileName, entireLine, querySplitByTabs );
             return true;
         }
         if ( querySplitByTabs.length == 5 ) {
@@ -73,7 +73,7 @@ public class CypherQueryParser
             query.server = querySplitByTabs[6];
             query.query = querySplitByTabs[7];
         }else{
-            printParsingError( fileName, entireLine );
+            printParsingError( fileName, entireLine, querySplitByTabs );
             return false;
         }
 
@@ -87,7 +87,7 @@ public class CypherQueryParser
     }
 
     // The string 'query.query' will have this shape: "$user - MATCH (n) RETURN (n) - {} - {}"
-    // We filter out the actual cypher from this bit.
+    // We filter out the actual analyzer.cypher from this bit.
     private String getActualCypher( QueryLogEntry query )
     {
         String partOfQueryAfterUserInfo;
@@ -136,12 +136,12 @@ public class CypherQueryParser
                 return getParsedQueryResult( fileName, query, parsedQueryResult );
             }
             //e.printStackTrace();
-            printParsingError( fileName, query.cypherQuery );
+            printParsingError( fileName, query.cypherQuery, new String[]{} );
         }
         return parsedQueryResult;
     }
 
-    private static void printParsingError( String fileName, String entireLine )
+    private static void printParsingError( String fileName, String entireLine, String[] querySplitByTabs )
     {
         System.out.println("[PARSER] ERROR, FILE="+fileName+", CANNOT PARSE: " + entireLine);
     }

@@ -1,3 +1,5 @@
 output/
 out/
 .idea/
+pattern_output/
+summarized_output/

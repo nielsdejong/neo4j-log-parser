@@ -1,6 +1,6 @@
-package parser;
+package analyzer.parser;
 
-import cypher.anonymized.AnonMapper;
+import analyzer.cypher.anonymized.AnonMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Parses an entire query log. Uses a Cypher query parser.
+ * Parses an entire query log. Uses a Cypher query analyzer.parser.
  */
 public class QueryLogParser
 {
 
     CypherQueryParser parser = new CypherQueryParser();
 
-    // Returns, for each unique neo4j database, the queries in the log, differentiated by their cypher string.
+    // Returns, for each unique neo4j database, the queries in the log, differentiated by their analyzer.cypher string.
     @Deprecated
     public Map<String,Map<String,List<QueryLogEntry>>> parseAndMapQueries( Map<String, List<String>> queryStringsPerFolder ){
         Map<String, Map<String, List<QueryLogEntry>>> queriesByFolder = new HashMap<>();

@@ -1,8 +1,8 @@
-package cypher.structure;
+package analyzer.cypher.structure;
 
-import cypher.ParsedQueryResult;
-import cypher.ParsedRelationshipBlock;
-import cypher.ParsedRelationshipBlockChain;
+import analyzer.cypher.ParsedQueryResult;
+import analyzer.cypher.ParsedRelationshipBlock;
+import analyzer.cypher.ParsedRelationshipBlockChain;
 
 import java.util.ArrayList;
 import java.util.HashMap;

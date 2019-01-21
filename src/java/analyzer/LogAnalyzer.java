@@ -1,32 +1,26 @@
 package analyzer;
 
-import parser.QueryLogEntry;
-import parser.QueryLogParser;
-import reader.QueryLogFileCollector;
-import reader.QueryLogFileReader;
-import scala.Tuple2;
-import scala.collection.JavaConversions;
-import scala.collection.immutable.Set;
-import writer.GeneralAnalysisTSVWriter;
-import writer.SummaryPrinter;
-import writer.FrequentPatternTSVWriter;
+import analyzer.parser.QueryLogEntry;
+import analyzer.parser.QueryLogParser;
+import analyzer.reader.QueryLogFileCollector;
+import analyzer.reader.QueryLogFileReader;
+import analyzer.writer.GeneralAnalysisTSVWriter;
+import analyzer.writer.SummaryPrinter;
+import analyzer.writer.FrequentPatternTSVWriter;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.cypher.internal.ir.v4_0.PatternRelationship;
 import org.neo4j.cypher.internal.special.CypherSpecialLogParsing;
-import org.neo4j.cypher.internal.v4_0.expressions.Expression;
 
 public class LogAnalyzer
 {
     // These should be LOWERCASE!
-    private String[] folderNamesToIgnore = {"ericsson", "ignore_me"};
+    private String[] folderNamesToIgnore = {"ignore_me"};
 
     public static void main(String[] args) {
-        //new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/" );
-        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/" );
+        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/Ericsson-5553" );
     }
 
     private void processLogFilesInFolder( String logFolder ){
@@ -40,6 +34,7 @@ public class LogAnalyzer
         QueryLogFileReader reader = new QueryLogFileReader();
         QueryLogParser parser = new QueryLogParser();
 
+        int total = 0;
         for ( Map.Entry<String, List<String>> entry : fileNamesPerFolder.entrySet() ){
             // Make a friendly name for the results
             String name = entry.getKey().substring( logFolder.length() ).replace( "/", "-" );
@@ -59,21 +54,23 @@ public class LogAnalyzer
             System.out.println("[SUMMARY] Printing summary..." );
             SummaryPrinter.printSummary( logFolder + name, queriesByCypherString);
             System.out.println();
-        }
-    }
 
+            total += lines.size();
+        }
+        System.out.println("DONE! " + total + " total lines in all query logs.");
+    }
 
 
     private void parseAndPrintQuery( String query, CypherSpecialLogParsing cypherSpecialParser )
     {
-        System.out.println("");
-        System.out.println( query );
-        Tuple2<Set<PatternRelationship>,Set<Expression>> result = cypherSpecialParser.doParsing( query );
-        for ( PatternRelationship rel : JavaConversions.asJavaCollection( cypherSpecialParser.doParsing( query )._1)) {
-            System.out.println(rel);
-        }
-       // System.out.println( cypherSpecialParser.doParsing( query )._1 );
-        System.out.println( cypherSpecialParser.doParsing( query )._2 );
+//        System.out.println("");
+//        System.out.println( query );
+//        Tuple2<Set<PatternRelationship>,Set<Expression>> result = cypherSpecialParser.doParsing( query );
+//        for ( PatternRelationship rel : JavaConversions.asJavaCollection( cypherSpecialParser.doParsing( query )._1)) {
+//            System.out.println(rel);
+//        }
+//        System.out.println( cypherSpecialParser.doParsing( query )._1 );
+//        System.out.println( cypherSpecialParser.doParsing( query )._2 );
     }
 }
 

@@ -1,6 +1,6 @@
-package cypher;
+package analyzer.cypher;
 
-import cypher.anonymized.AnonMapper;
+import analyzer.cypher.anonymized.AnonMapper;
 import scala.Tuple2;
 import scala.collection.immutable.Set;
 import org.neo4j.cypher.internal.ir.v4_0.PatternRelationship;
@@ -79,30 +79,29 @@ public class ParsedQueryResult
         return string;
     }
 
-    public String countMaxJoins(){
+    public int countMaxJoins(){
         int count = 0;
         for (  ParsedRelationshipBlock block : blocks ){
             count += block.getMaxLength();
         }
 
-        // It has an RPQ.
-        if ( count >= 10000 ){
-            return "*";
-        }
-        return "" + count;
+        return count;
     }
 
-    public String countMinJoins(){
+    public int countMinJoins(){
         int count = 0;
         for (  ParsedRelationshipBlock block : blocks ){
             count += block.getMinLength();
         }
-        return "" + count;
+        return count;
     }
 
     public int isChainQuery(){
+        if ( hasAnyEdgeInQuery() == 0){
+            return 0;
+        }
         for ( List<String> connected : queryGraph.values()){
-            if ( connected.size() > 2){
+            if ( connected.size() > 2 ){
                 return 0;
             }
         }
@@ -112,13 +111,17 @@ public class ParsedQueryResult
 
     public int hasAnyEdgeInQuery()
     {
-        if ( blocks.size() == 0 )
-        {
+        if ( blocks == null){
+            return 0;
+        } else if ( blocks.size() == 0 ) {
             return 0;
         }
         return 1;
     }
     public int isSingleEdgeQuery(){
+        if ( hasAnyEdgeInQuery() == 0){
+            return 0;
+        }
         if ( blocks.size() > 1 || blocks.size() == 0){
             return 0;
         }
@@ -131,6 +134,9 @@ public class ParsedQueryResult
 
 
     public int isTree(){
+        if ( hasAnyEdgeInQuery() == 0){
+            return 0;
+        }
         List<String> seen = new ArrayList<>();
 
         if ( blocks.size() == 0 ){
@@ -154,6 +160,9 @@ public class ParsedQueryResult
     }
 
     public int hasLoops(){
+        if ( hasAnyEdgeInQuery() == 0){
+            return 0;
+        }
         List<String> seen = new ArrayList<>();
 
         if ( blocks.size() == 0 ){

@@ -1,4 +1,4 @@
-package cypher.anonymized;
+package analyzer.cypher.anonymized;
 
 import java.util.HashMap;
 import java.util.Map;

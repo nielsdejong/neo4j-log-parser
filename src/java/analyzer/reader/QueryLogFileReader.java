@@ -1,4 +1,4 @@
-package reader;
+package analyzer.reader;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -74,7 +74,7 @@ public class QueryLogFileReader
             {
                 return query;
             }
-            else if( nextLine.startsWith( "2018-" ))
+            else if( nextLine.startsWith( "2018-" ) || nextLine.startsWith( "2017-" ) || nextLine.startsWith( "2016-" ) || nextLine.startsWith( "2015-" ) || nextLine.startsWith( "2014-") || nextLine.startsWith( "2013-" ))
             {
                 return query;
             } else {

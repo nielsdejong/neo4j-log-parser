@@ -1,6 +1,6 @@
-package cypher;
+package analyzer.cypher;
 
-import cypher.anonymized.AnonMapper;
+import analyzer.cypher.anonymized.AnonMapper;
 import org.apache.commons.collections.CollectionUtils;
 import scala.collection.JavaConversions;
 
@@ -99,7 +99,7 @@ public class ParsedRelationshipBlock
             minLength = varPatternLength.min();
             maxLength = varPatternLength.implicitPatternNodeCount();
             if ( varPatternLength.max().toString().equals( "None" )){
-                maxLength = 10000; // RPQ's
+                maxLength = 1000000; // RPQ's
             }
 
         }

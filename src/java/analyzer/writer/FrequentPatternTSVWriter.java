@@ -1,8 +1,8 @@
-package writer;
+package analyzer.writer;
 
-import cypher.ParsedRelationshipBlockChain;
-import cypher.structure.SubGraphGenerator;
-import parser.QueryLogEntry;
+import analyzer.cypher.ParsedRelationshipBlockChain;
+import analyzer.cypher.structure.SubGraphGenerator;
+import analyzer.parser.QueryLogEntry;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class FrequentPatternTSVWriter
                     if ( ! seenBlockChainsWithCount.containsKey( block ) ){
                         seenBlockChainsWithCount.put( block, 0 );
                     }
-                    // We see these block chains for a cypher query, and the query occurs X times, therefore we see the block (in total) X times.
+                    // We see these block chains for a analyzer.cypher query, and the query occurs X times, therefore we see the block (in total) X times.
                     seenBlockChainsWithCount.put(block, seenBlockChainsWithCount.get( block ) + (entry.getValue().size()) );
                 }
             }
