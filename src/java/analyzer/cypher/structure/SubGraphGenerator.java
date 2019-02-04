@@ -55,24 +55,24 @@ public class SubGraphGenerator
                         if ( ! chain.relIds.contains( block.relName ) && ! chain.nodeIds.contains( block.rightNodeName) ){
 
                             // Add the block (:A)-[:X]->(:B) to the chain
-                            newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopy, i, blockCopyWithoutLeftLabels, blockCopyWithoutEitherLabels, blockCopyWithoutRightLabels ));
+                            newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopy, i, blockCopyWithoutLeftLabels, blockCopyWithoutEitherLabels, blockCopyWithoutRightLabels, chain.originalUnmodified ));
 
                             // Add the block (...)-[:X]->(:B)
                             if ( blockCopy.leftLabels.size() > 0 && chain.chain.size() == 0 )
                             {
-                                newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutLeftLabels, i, blockCopyWithoutLeftLabels, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels ) );
+                                newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutLeftLabels, i, blockCopyWithoutLeftLabels, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels, 0 ) );
                             }
 
                             // Add the block (:A)-[:X]->(...)
                             if ( blockCopy.rightLabels.size() > 0 )
                             {
-                                newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutRightLabels, i, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels, blockCopyWithoutRightLabels ) );
+                                newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutRightLabels, i, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels, blockCopyWithoutRightLabels, 0 ) );
                             }
 
                             // Add the block (...)-[:X]->(...)
                             if ( blockCopy.leftLabels.size() > 0 && chain.chain.size() == 0 && blockCopy.rightLabels.size() > 0)
                             {
-                                newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutEitherLabels, i, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels ) );
+                                newChainsByLength.add( new ParsedRelationshipBlockChain( chain, blockCopyWithoutEitherLabels, i, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels, blockCopyWithoutEitherLabels, 0 ) );
                             }
                         }
                     }
@@ -103,7 +103,7 @@ public class SubGraphGenerator
         for ( String nodeName : parsedQueryResult.blocksConnectedToNode.keySet() )
         {
             List<ParsedRelationshipBlockChain> emptyArrayList = new ArrayList<>( );
-            emptyArrayList.add( new ParsedRelationshipBlockChain(  ) );
+            emptyArrayList.add( new ParsedRelationshipBlockChain( ) );
             allBlocksInGraph.addAll ( chainBuildingBFS( parsedQueryResult.blocksConnectedToNode, emptyArrayList, nodeName, maxSubPatternSize ));
         }
 

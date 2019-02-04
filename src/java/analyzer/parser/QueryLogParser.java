@@ -1,6 +1,8 @@
 package analyzer.parser;
 
-import analyzer.cypher.anonymized.AnonMapper;
+import analyzer.cypher.anonymized.AnonymousLabelAndNameMapper;
+import analyzer.parser.query.CypherQueryParser;
+import analyzer.parser.query.QueryLogEntry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,7 @@ public class QueryLogParser
     {
         parser.cache = new HashMap<>();
         int size = lines.size();
-        AnonMapper.resetForLabels();
+        AnonymousLabelAndNameMapper.resetForLabels();
         System.out.println( "[PARSER] Parsing queries in folder: " + folder + " (log_size = " + size + ")");
         Map<String, List<QueryLogEntry>> queriesMappedByCypherString = new HashMap<>();
         int counter = 0;

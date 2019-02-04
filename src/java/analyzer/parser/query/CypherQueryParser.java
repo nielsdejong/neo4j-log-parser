@@ -1,4 +1,4 @@
-package analyzer.parser;
+package analyzer.parser.query;
 
 import analyzer.cypher.ParsedQueryResult;
 

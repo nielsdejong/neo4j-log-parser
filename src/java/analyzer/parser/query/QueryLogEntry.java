@@ -1,4 +1,4 @@
-package analyzer.parser;
+package analyzer.parser.query;
 
 import analyzer.cypher.ParsedQueryResult;
 
@@ -27,13 +27,17 @@ public class QueryLogEntry
 
     public int isUpdateQuery(){
         //CREATE SET MERGE DELETE REMOVE
-        if ( cypherQuery == null ){
+        if ( parsed == null ){
             return 0;
         }
-        if( cypherQuery.toUpperCase().contains( "CREATE " ) || cypherQuery.toUpperCase().contains( "SET " ) ||cypherQuery.toUpperCase().contains( "MERGE " ) || cypherQuery.toUpperCase().contains( "DELETE " ) || cypherQuery.toUpperCase().contains( "REMOVE " )){
+        if ( parsed.isUpdate ){
             return 1;
         }
         return 0;
+//        if( cypherQuery.toUpperCase().contains( "CREATE " ) || cypherQuery.toUpperCase().contains( "SET " ) ||cypherQuery.toUpperCase().contains( "MERGE " ) || cypherQuery.toUpperCase().contains( "DELETE " ) || cypherQuery.toUpperCase().contains( "REMOVE " )){
+//            return 1;
+//        }
+//        return 0;
     }
 
     public int isReadQuery(){
@@ -47,7 +51,7 @@ public class QueryLogEntry
     }
 
 
-    public int isRPQ(){
+    public int isUnboundedVariableLength(){
         if ( parsed == null || cypherQuery == null ){
             return 0;
         }
@@ -60,14 +64,17 @@ public class QueryLogEntry
 
 
     // The query does only a MERGE, so no other write queries. This is the class of queries where we cannot be sure if writes happened.
-    public int isOnlyMergeQuery(){
-        if ( cypherQuery == null ){
+    public int hasMergeInQuery(){
+        if ( parsed == null ){
             return 0;
         }
-        if ( cypherQuery.toUpperCase().contains( "MERGE " ) &&
-                ! (cypherQuery.toUpperCase().contains( "CREATE " ) || cypherQuery.toUpperCase().contains( "DELETE " ) || cypherQuery.toUpperCase().contains( "REMOVE " )) ){
+        if (parsed.hasMerge){
             return 1;
         }
+//        if ( cypherQuery.toUpperCase().contains( "MERGE " ) &&
+//                ! (cypherQuery.toUpperCase().contains( "CREATE " ) || cypherQuery.toUpperCase().contains( "DELETE " ) || cypherQuery.toUpperCase().contains( "REMOVE " )) ){
+//            return 1;
+//        }
         return 0;
     }
 }

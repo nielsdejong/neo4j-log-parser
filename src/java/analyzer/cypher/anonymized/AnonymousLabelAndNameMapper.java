@@ -3,7 +3,10 @@ package analyzer.cypher.anonymized;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnonMapper
+/**
+ * Anonymyzes labels, types and names as used inside Cypher queries.
+ */
+public class AnonymousLabelAndNameMapper
 {
     static String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

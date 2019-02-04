@@ -1,7 +1,8 @@
 package analyzer.cypher;
 
-import analyzer.cypher.anonymized.AnonMapper;
+import analyzer.cypher.anonymized.AnonymousLabelAndNameMapper;
 import scala.Tuple2;
+import scala.Tuple4;
 import scala.collection.immutable.Set;
 import org.neo4j.cypher.internal.ir.v4_0.PatternRelationship;
 import org.neo4j.cypher.internal.v4_0.expressions.Expression;
@@ -19,14 +20,19 @@ public class ParsedQueryResult
     private List<ParsedRelationshipBlock> blocks = new ArrayList<>();
     Map<String, List<String>> queryGraph = new HashMap<>();
     public Map<String, List<ParsedRelationshipBlock>> blocksConnectedToNode = new HashMap<>();
+    public boolean isUpdate;
+    public boolean hasMerge;
 
-    public ParsedQueryResult(  Tuple2<Set<PatternRelationship>,Set<Expression>> tuple2 )
+
+    public ParsedQueryResult(  Tuple4<Set<PatternRelationship>,Set<Expression>, Object, Object> tuple4 )
     {
-        convertToParsedRelBlocks( tuple2._1(), tuple2._2() );
+        convertToParsedRelBlocks( tuple4._1(), tuple4._2() );
+        isUpdate = (boolean) tuple4._3();
+        hasMerge = (boolean) tuple4._4();
     }
 
     private void convertToParsedRelBlocks( Set<PatternRelationship> patternRelationshipSet, Set<Expression> expressionSet ){
-        AnonMapper.resetForNames();
+        AnonymousLabelAndNameMapper.resetForNames();
 
         Map<String, List<String>> nodesAndTheirLabels = new HashMap<>();
 
@@ -117,6 +123,20 @@ public class ParsedQueryResult
             return 0;
         }
         return 1;
+    }
+
+    public int isXLengthQuery(int minInclusive, int maxInclusive){
+        int maxJoins = countMaxJoins();
+        if ( maxJoins >= minInclusive && maxJoins <= maxInclusive ){
+            return 1;
+        }
+        return 0;
+    }
+    public int isXLengthQuery(int x){
+        if ( countMaxJoins() == x){
+            return 1;
+        }
+        return 0;
     }
     public int isSingleEdgeQuery(){
         if ( hasAnyEdgeInQuery() == 0){

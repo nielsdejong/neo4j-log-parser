@@ -1,6 +1,6 @@
 package analyzer.cypher;
 
-import analyzer.cypher.anonymized.AnonMapper;
+import analyzer.cypher.anonymized.AnonymousLabelAndNameMapper;
 import org.apache.commons.collections.CollectionUtils;
 import scala.collection.JavaConversions;
 
@@ -145,10 +145,14 @@ public class ParsedRelationshipBlock
     }
 
     public String relCountAsString(){
-        if ( minLength == 1 && maxLength == 10000)
+        if ( minLength == 1 && maxLength == 1000000)
             return "*";
         else if ( minLength != maxLength ){
-            return "*"+minLength + ".." + maxLength;
+            if ( maxLength == 1000000 ){
+                return "*"+minLength + "..*";
+            }else{
+                return "*"+minLength + ".." + maxLength;
+            }
         }else if ( minLength == 1){
             return "";
         }else{
@@ -172,20 +176,20 @@ public class ParsedRelationshipBlock
         // Anonimyze the labels and types.
         if ( types != null )
             for ( String type : types )
-                anonTypes.add( AnonMapper.getRelType( type ) );
+                anonTypes.add( AnonymousLabelAndNameMapper.getRelType( type ) );
 
         if ( leftLabels != null)
             for ( String leftLabel : leftLabels )
-                anonLeftLabels.add( AnonMapper.getNodeLabel( leftLabel ) );
+                anonLeftLabels.add( AnonymousLabelAndNameMapper.getNodeLabel( leftLabel ) );
 
         if ( rightLabels != null)
             for ( String rightLabel : rightLabels )
-                anonRightLabels.add( AnonMapper.getNodeLabel( rightLabel ) );
+                anonRightLabels.add( AnonymousLabelAndNameMapper.getNodeLabel( rightLabel ) );
 
         // Anonimyze the names
-        anonLeftNode = AnonMapper.getNodeName( leftNodeName );
-        anonRightNode = AnonMapper.getNodeName( rightNodeName );
-        anonRelName = AnonMapper.getRelName( relName );
+        anonLeftNode = AnonymousLabelAndNameMapper.getNodeName( leftNodeName );
+        anonRightNode = AnonymousLabelAndNameMapper.getNodeName( rightNodeName );
+        anonRelName = AnonymousLabelAndNameMapper.getRelName( relName );
 
     }
 

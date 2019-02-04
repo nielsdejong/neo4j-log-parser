@@ -38,7 +38,6 @@ public class QueryLogFileReader
         {
             lines.addAll( this.readAllLinesForFile( fileName ) );
         }
-        // allLines.put( folderName, lines );
 
         System.out.println( "[LOG READER] Folder " + folderName + " has " + lines.size() + " lines.");
         return lines;
@@ -74,6 +73,7 @@ public class QueryLogFileReader
             {
                 return query;
             }
+            // TODO: Add years here, or REGEX for all years
             else if( nextLine.startsWith( "2018-" ) || nextLine.startsWith( "2017-" ) || nextLine.startsWith( "2016-" ) || nextLine.startsWith( "2015-" ) || nextLine.startsWith( "2014-") || nextLine.startsWith( "2013-" ))
             {
                 return query;

@@ -10,6 +10,11 @@ public class QueryShapeTSVWriter
             int totalQueryCount,
             int totalQueriesWithEdges,
             int totalSingleEdgeQueries,
+            int totalTwoEdgeQueries,
+            int totalThreeEdgeQueries,
+            int totalFourEdgeQueries,
+            int totalFiveToNineEdgeQueries,
+            int totalTenOrMoreEdgeQueries,
             int totalEmptyQueryGraphQueries,
             int totalChainQueries,
             int totalTreeQueries,
@@ -26,6 +31,11 @@ public class QueryShapeTSVWriter
             writer.write( totalQueryCount + seperator );
             writer.write( totalQueriesWithEdges + seperator );
             writer.write( totalSingleEdgeQueries + seperator );
+            writer.write( totalTwoEdgeQueries + seperator );
+            writer.write( totalThreeEdgeQueries + seperator );
+            writer.write( totalFourEdgeQueries + seperator );
+            writer.write( totalFiveToNineEdgeQueries + seperator );
+            writer.write( totalTenOrMoreEdgeQueries + seperator );
             writer.write( totalEmptyQueryGraphQueries + seperator );
             writer.write( totalChainQueries + seperator );
             writer.write( totalTreeQueries + seperator );

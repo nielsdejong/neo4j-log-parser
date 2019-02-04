@@ -9,7 +9,7 @@ public class ParsedRelationshipBlockChain
 {
 
     public int nonEmptyNodesWithLabels = 0;
-
+    public int originalUnmodified = 1;
     public List<ParsedRelationshipBlock> chain = new ArrayList<>();
     public List<String> relIds = new ArrayList<>();
     public List<String> nodeIds = new ArrayList<>();
@@ -22,9 +22,11 @@ public class ParsedRelationshipBlockChain
             nodeIds.add( block.leftNodeName );
         }
     }
-    public ParsedRelationshipBlockChain ( ParsedRelationshipBlockChain oldChain, ParsedRelationshipBlock newBlock, int nrOfCopies, ParsedRelationshipBlock blockCopyWithoutLeftLabels, ParsedRelationshipBlock blockCopyWithoutEitherLabels, ParsedRelationshipBlock blockCopyWithoutRightLabels ){
-       chain.addAll( oldChain.chain );
-       relIds.addAll( oldChain.relIds );
+    public ParsedRelationshipBlockChain ( ParsedRelationshipBlockChain oldChain, ParsedRelationshipBlock newBlock, int nrOfCopies, ParsedRelationshipBlock blockCopyWithoutLeftLabels, ParsedRelationshipBlock blockCopyWithoutEitherLabels, ParsedRelationshipBlock blockCopyWithoutRightLabels, int originalModified ){
+
+        this.originalUnmodified = originalModified;
+        chain.addAll( oldChain.chain );
+        relIds.addAll( oldChain.relIds );
         for ( int i = 0; i < nrOfCopies; i++ )
         {
             // Dealing with tricky var length patterns

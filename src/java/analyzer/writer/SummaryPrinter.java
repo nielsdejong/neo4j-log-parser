@@ -1,6 +1,6 @@
 package analyzer.writer;
 
-import analyzer.parser.QueryLogEntry;
+import analyzer.parser.query.QueryLogEntry;
 
 import java.util.List;
 import java.util.Map;

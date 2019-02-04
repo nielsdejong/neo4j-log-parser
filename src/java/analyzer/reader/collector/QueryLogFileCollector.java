@@ -1,4 +1,4 @@
-package analyzer.reader;
+package analyzer.reader.collector;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,13 +23,15 @@ public class QueryLogFileCollector
                 if ( listOfFile.getName().contains( "query.log" ) && !listOfFile.getName().endsWith( ".zip" ))
                 {
                     if ( !fileNames.containsKey(  folderLocation  )){
+                        if (listOfFile.getAbsolutePath().contains( "3" ))
                         fileNames.put( folderLocation, new ArrayList<>());
                     }
+                    if (listOfFile.getAbsolutePath().contains( "3" ))
                     fileNames.get( folderLocation ).add (listOfFile.getAbsolutePath());
                 }
             }else{
                 if ( !StringUtils.containsAny( listOfFile.getAbsolutePath().toLowerCase(), namesToIgnore)) {
-                    fileNames.putAll( getAllFilesInFolder( fileNames, listOfFile.getAbsolutePath(), namesToIgnore ) );
+                        fileNames.putAll( getAllFilesInFolder( fileNames, listOfFile.getAbsolutePath(), namesToIgnore ) );
                 }
             }
 

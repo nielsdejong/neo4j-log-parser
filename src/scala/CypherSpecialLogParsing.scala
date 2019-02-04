@@ -55,7 +55,7 @@ class CypherSpecialLogParsing {
       logicalPlanIdGen, null)
   }
 
-  def doParsing(inputQuery: String): (Set[PatternRelationship], Set[Expression]) = {
+  def doParsing(inputQuery: String): (Set[PatternRelationship], Set[Expression], Boolean, Boolean) = {
 
     var query = inputQuery.trim()
     if ( query.substring(0, 7).toLowerCase.equals( "profile") || query.substring(0, 7).toLowerCase.equals("explain")){
@@ -89,23 +89,54 @@ class CypherSpecialLogParsing {
     var hasLabels = Set[Expression]()
 
     // go through all union queries
+    var makesPaths = false
+    var merge = false
+
+    // TODO: optimize this somehow, we are doing many tree BFS'es now... (maybe write own function into FoldableAny).
 
     val foldableAny = Foldable.FoldableAny(resultState.maybeUnionQuery)
 
-    // TODO: optimize this somehow, we are doing 4 tree BFS'es now... (maybe write own function into FoldableAny).
-    foldableAny.findByAllClass[PatternRelationship].foreach( pattern => {
-      patterns += pattern
+    foldableAny.findByAllClass[SetLabelPattern].foreach( pattern => {
+        makesPaths = true
     })
+
+    foldableAny.findByAllClass[DeleteExpression].foreach( pattern => {
+        makesPaths = true
+    })
+
+    foldableAny.findByAllClass[CreateRelationship].foreach( pattern => {
+      makesPaths = true
+    })
+
+    foldableAny.findByAllClass[CreateNode].foreach( pattern => {
+      makesPaths = true
+    })
+
+    foldableAny.findByAllClass[RemoveLabelPattern].foreach( pattern => {
+      makesPaths = true
+    })
+
+    foldableAny.findByAllClass[MergeNodePattern].foreach( pattern => {
+      makesPaths = true
+      merge = true
+    })
+
+    foldableAny.findByAllClass[MergeRelationshipPattern].foreach( pattern => {
+      makesPaths = true
+      merge = true
+    })
+
     foldableAny.findByAllClass[CreatePattern].foreach( pattern => {
+      makesPaths = true
       patterns ++= pattern.relationships.map(r => PatternRelationship(r.idName, (r.startNode, r.endNode), r.direction, Seq(r.relType), SimplePatternLength))
       hasLabels ++= pattern.nodes.map(n => HasLabels(Variable(n.idName)(InputPosition.NONE), n.labels)(InputPosition.NONE))
     })
+
     foldableAny.findByAllClass[MergePattern].foreach(pattern => {
+      makesPaths = true
+      merge = true
       patterns ++= pattern.matchGraph.patternRelationships
 
-    })
-    foldableAny.findByAllClass[DeleteExpression].foreach(pattern => {
-      // this can't actually have patterns, I think
     })
     foldableAny.findByAllClass[HasLabels].foreach(pattern => {
       hasLabels += pattern
@@ -135,6 +166,6 @@ class CypherSpecialLogParsing {
       }
     })
 
-    return ( patterns, hasLabels )
+    return ( patterns, hasLabels, makesPaths, merge )
   }
 }
