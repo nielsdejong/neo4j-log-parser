@@ -1,4 +1,4 @@
-# neo4j-log-analyzer.parser
+# neo4j-log-analyzer
 Parsers and analyzes Neo4j query logs to build a structural summary and discover frequent patterns. 
 
 ## Input:
