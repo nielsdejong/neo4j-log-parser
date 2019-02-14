@@ -15,10 +15,10 @@ import java.util.Map;
 public class LogAnalyzer
 {
     // These names should be provided LOWERCASE! (in the reverse case we only do this file.)
-    private String[] folderNamesToIgnore = {"zzzhomeaway"};
+    private String[] folderNamesToIgnore = {"IGNORE_ME"};
 
     public static void main(String[] args) {
-        new LogAnalyzer().processLogFilesInFolder( "/home/niels/Desktop/customer stuff/" );
+        new LogAnalyzer().processLogFilesInFolder( args[0] );
     }
 
     private void processLogFilesInFolder( String logFolder ){

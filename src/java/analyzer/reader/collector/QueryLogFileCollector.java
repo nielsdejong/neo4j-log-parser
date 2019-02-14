@@ -23,10 +23,8 @@ public class QueryLogFileCollector
                 if ( listOfFile.getName().contains( "query.log" ) && !listOfFile.getName().endsWith( ".zip" ))
                 {
                     if ( !fileNames.containsKey(  folderLocation  )){
-                        if (listOfFile.getAbsolutePath().contains( "3" ))
                         fileNames.put( folderLocation, new ArrayList<>());
                     }
-                    if (listOfFile.getAbsolutePath().contains( "3" ))
                     fileNames.get( folderLocation ).add (listOfFile.getAbsolutePath());
                 }
             }else{
