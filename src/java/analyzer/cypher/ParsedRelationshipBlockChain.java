@@ -22,7 +22,12 @@ public class ParsedRelationshipBlockChain
             nodeIds.add( block.leftNodeName );
         }
     }
-    public ParsedRelationshipBlockChain ( ParsedRelationshipBlockChain oldChain, ParsedRelationshipBlock newBlock, int nrOfCopies, ParsedRelationshipBlock blockCopyWithoutLeftLabels, ParsedRelationshipBlock blockCopyWithoutEitherLabels, ParsedRelationshipBlock blockCopyWithoutRightLabels, int originalModified ){
+    public ParsedRelationshipBlockChain ( ParsedRelationshipBlockChain oldChain,
+            ParsedRelationshipBlock newBlock, int nrOfCopies,
+            ParsedRelationshipBlock blockCopyWithoutLeftLabels,
+            ParsedRelationshipBlock blockCopyWithoutEitherLabels,
+            ParsedRelationshipBlock blockCopyWithoutRightLabels,
+            int originalModified ){
 
         this.originalUnmodified = originalModified;
         chain.addAll( oldChain.chain );

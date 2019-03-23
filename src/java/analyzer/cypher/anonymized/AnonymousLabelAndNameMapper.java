@@ -6,18 +6,19 @@ import java.util.Map;
 /**
  * Anonymyzes labels, types and names as used inside Cypher queries.
  */
+// TODO: Make this not a static class.
 public class AnonymousLabelAndNameMapper
 {
-    static String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    static int currentNodeLabelCounter;
-    static int currentNodeNameCounter;
-    static int currentRelTypeCounter;
-    static int currentRelNameCounter;
-    static Map<String, String> nodeLabelMap;
-    static Map<String, String> relTypeMap;
-    static Map<String, String> nodeNameMap;
-    static Map<String, String> relNameMap;
+    private static int currentNodeLabelCounter;
+    private static int currentNodeNameCounter;
+    private static int currentRelTypeCounter;
+    private static int currentRelNameCounter;
+    private static Map<String, String> nodeLabelMap;
+    private static Map<String, String> relTypeMap;
+    private static Map<String, String> nodeNameMap;
+    private static Map<String, String> relNameMap;
 
     public static void resetForLabels() {
       nodeLabelMap = new HashMap<>();

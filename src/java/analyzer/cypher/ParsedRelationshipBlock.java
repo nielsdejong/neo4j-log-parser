@@ -45,7 +45,10 @@ public class ParsedRelationshipBlock
     private int minLength = 1;
     private int maxLength = 1;
 
-    public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels, String relName, List<String> types, List<String> rightLabels, String rightNodeName, SemanticDirection direction, int minLength, int maxLength ){
+    public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels,
+            String relName, List<String> types,
+            List<String> rightLabels, String rightNodeName,
+            SemanticDirection direction, int minLength, int maxLength ){
         this.leftLabels = leftLabels;
         this.rightLabels = rightLabels;
         this.types = types;
@@ -59,7 +62,10 @@ public class ParsedRelationshipBlock
         anonymyzeLabelsAndTypes();
     }
 
-    public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels, String relName, String type, List<String> rightLabels, String rightNodeName, SemanticDirection direction, int minLength, int maxLength ){
+    public ParsedRelationshipBlock ( String leftNodeName, List<String> leftLabels,
+            String relName, String type,
+            List<String> rightLabels, String rightNodeName,
+            SemanticDirection direction, int minLength, int maxLength ){
         List<String> types = new ArrayList<>();
         types.add( type );
         this.leftLabels = leftLabels;
@@ -212,18 +218,4 @@ public class ParsedRelationshipBlock
     public String hashableString(){
         return labels(leftLabels) + direction + minLength + maxLength + labels( rightLabels ) + labels(types);
     }
-
-    private ParsedRelationshipBlock getClone(){
-        try
-        {
-            ParsedRelationshipBlock clone = (ParsedRelationshipBlock) this.clone();
-            return clone;
-        }
-        catch ( CloneNotSupportedException e )
-        {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
 }
