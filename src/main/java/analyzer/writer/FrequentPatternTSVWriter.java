@@ -6,6 +6,7 @@ import analyzer.parser.query.QueryLogEntry;
 import analyzer.writer.summary.FrequentPatternSummaryTSVWriter;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ public class FrequentPatternTSVWriter
         {
             SubGraphGenerator subGraphGenerator = new SubGraphGenerator();
             String seperator = " \t ";
+            new File("pattern_output").mkdirs();
             BufferedWriter writer = new BufferedWriter( new PrintWriter( "pattern_output/"+name+".tsv" ) );
             writer.write( "pattern \t length \t count \t original");
             writer.newLine();

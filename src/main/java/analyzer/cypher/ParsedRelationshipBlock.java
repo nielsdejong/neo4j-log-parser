@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.cypher.internal.ir.v4_0.PatternLength;
-import org.neo4j.cypher.internal.ir.v4_0.PatternRelationship;
-import org.neo4j.cypher.internal.ir.v4_0.VarPatternLength;
+import org.neo4j.cypher.internal.ir.PatternLength;
+import org.neo4j.cypher.internal.ir.PatternRelationship;
+import org.neo4j.cypher.internal.ir.VarPatternLength;
 import org.neo4j.cypher.internal.v4_0.expressions.RelTypeName;
 import org.neo4j.cypher.internal.v4_0.expressions.SemanticDirection;
 

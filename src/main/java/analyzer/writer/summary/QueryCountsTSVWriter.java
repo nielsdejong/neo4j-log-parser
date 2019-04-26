@@ -1,6 +1,7 @@
 package analyzer.writer.summary;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -10,6 +11,7 @@ public class QueryCountsTSVWriter
         String seperator = "\t ";
         try
         {
+            new File( "summarized_output" ).mkdirs();
             BufferedWriter writer = new BufferedWriter(new FileWriter("summarized_output/counts.tsv", true));
             writer.write( name + seperator );
             writer.write( totalQueryCount + seperator );

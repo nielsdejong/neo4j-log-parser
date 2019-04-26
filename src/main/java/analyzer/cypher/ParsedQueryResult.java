@@ -4,7 +4,8 @@ import analyzer.cypher.anonymized.AnonymousLabelAndNameMapper;
 import scala.Tuple2;
 import scala.Tuple4;
 import scala.collection.immutable.Set;
-import org.neo4j.cypher.internal.ir.v4_0.PatternRelationship;
+
+import org.neo4j.cypher.internal.ir.PatternRelationship;
 import org.neo4j.cypher.internal.v4_0.expressions.Expression;
 import org.neo4j.cypher.internal.v4_0.expressions.HasLabels;
 import org.neo4j.cypher.internal.v4_0.expressions.LabelName;
@@ -203,7 +204,7 @@ public class ParsedQueryResult
             // If a tree, then no loops
             return 0;
         }
-        
+
     }
 
     private boolean simpleBFSfindLoops( List<String> seen, String prevNode, String current ){

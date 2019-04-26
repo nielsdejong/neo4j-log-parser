@@ -5,6 +5,7 @@ import analyzer.writer.summary.QueryCountsTSVWriter;
 import analyzer.writer.summary.QueryShapeTSVWriter;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -15,8 +16,16 @@ public class GeneralAnalysisTSVWriter
 {
     // TODO: Don't use static variables and methods here
 
-    public static final boolean ANONYMOUS = true;
+    public static final boolean ANONYMOUS = false;
     public static int ACTUAL_QUERY_COUNT = 0;
+//    public static void writeDistinctQueries( String name, Map<String,List<QueryLogEntry>> queries ) {
+//
+//        new File("output").mkdirs();
+//        BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
+//        writer.write( "cypher_query \t " +
+//                "count \t " +
+//                "isReadQuery \t" +
+//    }
     public static void writeParsedLog( String name, Map<String,List<QueryLogEntry>> queries )
     {
         try
@@ -47,6 +56,7 @@ public class GeneralAnalysisTSVWriter
 
 
             String seperator = "\t ";
+            new File("output").mkdirs();
             BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
             writer.write( "cypher_query \t " +
                     "count \t " +
@@ -85,7 +95,7 @@ public class GeneralAnalysisTSVWriter
                 if ( ANONYMOUS ) {
                     line += counter;
                 }else {
-                    line += entry.getKey().replace( seperator, "," ).substring( 0, Math.min( 1000, entry.getKey().length() ) );
+                    line += entry.getKey().replace( seperator, "," ).substring( 0, Math.min( 10000, entry.getKey().length() ) );
                 }
                 line += seperator;
 

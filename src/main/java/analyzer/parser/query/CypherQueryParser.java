@@ -94,9 +94,10 @@ public class CypherQueryParser
         if ( query.query.split( query.user + " - ").length == 2){
             partOfQueryAfterUserInfo = query.query.split( query.user + " - ")[1];
         } else {
-            partOfQueryAfterUserInfo = query.query.split( " - ")[1];
+            partOfQueryAfterUserInfo = query.query.split( " - ", 2)[1];
         }
-        return partOfQueryAfterUserInfo.split( "- \\{" )[0];
+        String substring = partOfQueryAfterUserInfo.substring( 0, partOfQueryAfterUserInfo.lastIndexOf( "- {" ) );
+        return substring.substring( 0, substring.lastIndexOf( "- {" ) );
     }
 
     private int getQueryExecutionTime( QueryLogEntry query )

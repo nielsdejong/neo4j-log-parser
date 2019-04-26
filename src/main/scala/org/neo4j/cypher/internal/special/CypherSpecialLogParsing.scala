@@ -7,18 +7,17 @@ package org.neo4j.cypher.internal.special
 
 import org.neo4j.cypher.internal.MasterCompiler
 import org.neo4j.cypher.internal.compatibility.v4_0.WrappedMonitors
-import org.neo4j.cypher.internal.compiler.v4_0.phases._
-import org.neo4j.cypher.internal.compiler.v4_0.planner.ResolveTokens
-import org.neo4j.cypher.internal.compiler.v4_0.planner.logical.idp.IDPQueryGraphSolver
-import org.neo4j.cypher.internal.compiler.v4_0.planner.logical.{CachedMetricsFactory, OptionalMatchRemover, SimpleMetricsFactory}
-import org.neo4j.cypher.internal.compiler.v4_0.{CypherPlannerConfiguration, StatsDivergenceCalculator, defaultUpdateStrategy}
-import org.neo4j.cypher.internal.ir.v4_0._
+import org.neo4j.cypher.internal.compiler.phases.{CompilationContains, CreatePlannerQuery, LogicalPlanState, PlannerContext, PlannerContextCreator}
+import org.neo4j.cypher.internal.compiler.planner.ResolveTokens
+import org.neo4j.cypher.internal.compiler.planner.logical.idp.IDPQueryGraphSolver
+import org.neo4j.cypher.internal.compiler.planner.logical.{CachedMetricsFactory, OptionalMatchRemover, SimpleMetricsFactory}
+import org.neo4j.cypher.internal.compiler.{CypherPlannerConfiguration, StatsDivergenceCalculator, defaultUpdateStrategy}
+import org.neo4j.cypher.internal.ir._
 import org.neo4j.cypher.internal.javacompat.GraphDatabaseCypherService
-import org.neo4j.cypher.internal.planner.v4_0.spi.PlanningAttributes.{Cardinalities, ProvidedOrders, Solveds}
-import org.neo4j.cypher.internal.planner.v4_0.spi.{IDPPlannerName, PlanContext, PlannerNameFor, PlanningAttributes}
+import org.neo4j.cypher.internal.planner.spi.PlanningAttributes.{Cardinalities, ProvidedOrders, Solveds}
+import org.neo4j.cypher.internal.planner.spi.{IDPPlannerName, PlanContext, PlannerNameFor, PlanningAttributes}
 import org.neo4j.cypher.internal.runtime.interpreted.TransactionalContextWrapper
-import org.neo4j.cypher.internal.special.test.TestGraphDatabaseFactory
-import org.neo4j.cypher.internal.spi.v4_0.TransactionBoundPlanContext
+import org.neo4j.cypher.internal.spi.TransactionBoundPlanContext
 import org.neo4j.cypher.internal.v4_0.ast.semantics.SemanticState
 import org.neo4j.cypher.internal.v4_0.expressions._
 import org.neo4j.cypher.internal.v4_0.frontend.phases.CompilationPhaseTracer.NO_TRACING
@@ -29,7 +28,7 @@ import org.neo4j.cypher.internal.v4_0.util.{Foldable, InputPosition}
 import org.neo4j.internal.kernel.api.Transaction
 import org.neo4j.internal.kernel.api.security.LoginContext
 import org.neo4j.kernel.impl.query.Neo4jTransactionalContextFactory
-import org.neo4j.kernel.monitoring.Monitors
+import org.neo4j.test.TestGraphDatabaseFactory
 import org.neo4j.values.virtual.VirtualValues.EMPTY_MAP
 
 class CypherSpecialLogParsing {
@@ -50,9 +49,9 @@ class CypherSpecialLogParsing {
                                     queryGraphSolver: IDPQueryGraphSolver, enterprise: Boolean): PlannerContext = {
     val logicalPlanIdGen = new SequentialIdGen()
     PlannerContextCreator.create(NO_TRACING, devNullLogger, planContext, query, Set(),
-      None, WrappedMonitors(new Monitors), metricsFactory,
+      None, WrappedMonitors(new org.neo4j.monitoring.Monitors), metricsFactory,
       queryGraphSolver, config, defaultUpdateStrategy, MasterCompiler.CLOCK,
-      logicalPlanIdGen, null)
+      logicalPlanIdGen, null, null)
   }
 
   def doParsing(inputQuery: String): (Set[PatternRelationship], Set[Expression], Boolean, Boolean) = {
@@ -73,13 +72,12 @@ class CypherSpecialLogParsing {
       useErrorsOverWarnings = false,
       idpMaxTableSize = 128,
       idpIterationDuration = 1000,
-      errorIfShortestPathFallbackUsedNeo4j 3.5's AtRuntime = false,
+      errorIfShortestPathFallbackUsedAtRuntime = false,
       errorIfShortestPathHasCommonNodesAtRuntime = false,
       legacyCsvQuoteEscaping = false,
       csvBufferSize = 2 * 1024 * 1024,
       nonIndexedLabelWarningThreshold = 0,
-      planWithMinimumCardinalityEstimates = true,
-      lenientCreateRelationship = true)
+      planWithMinimumCardinalityEstimates = true)
       , planContext, null, true)
     val parsingBaseState = CompilationPhases.parsing(RewriterStepSequencer.newPlain).transform(startState, plannerContext)
     val resultState = stuff.transform(parsingBaseState, plannerContext)

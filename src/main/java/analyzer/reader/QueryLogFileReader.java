@@ -16,17 +16,17 @@ public class QueryLogFileReader
     private String nextLine;
 
     @Deprecated
-    public Map<String,List<String>> readAllLinesForAllFiles( Map<String, List<String>> fileNames )
+    public Map<String,List<String>> readAllLinesForAllFiles( Map<String,List<String>> fileNames )
     {
-        Map<String, List<String>> allLines = new HashMap<>();
+        Map<String,List<String>> allLines = new HashMap<>();
 
         int counter = 0;
-        for ( Map.Entry<String, List<String>> entry : fileNames.entrySet() )
+        for ( Map.Entry<String,List<String>> entry : fileNames.entrySet() )
         {
             List<String> lines = readAllFilesInSingleFolder( entry.getKey(), entry.getValue() );
             allLines.put( entry.getKey(), lines );
         }
-        System.out.println( "Read all files. Total number of log lines read: " + counter + " lines.");
+        System.out.println( "Read all files. Total number of log lines read: " + counter + " lines." );
         return allLines;
     }
 
@@ -39,19 +39,20 @@ public class QueryLogFileReader
             lines.addAll( this.readAllLinesForFile( fileName ) );
         }
 
-        System.out.println( "[LOG READER] Folder " + folderName + " has " + lines.size() + " lines.");
+        System.out.println( "[LOG READER] Folder " + folderName + " has " + lines.size() + " lines." );
         return lines;
     }
 
-    private List<String> readAllLinesForFile( String file ) {
+    private List<String> readAllLinesForFile( String file )
+    {
         List<String> queries = new ArrayList<>();
         try
         {
-            BufferedReader br = new BufferedReader(new FileReader(file));
+            BufferedReader br = new BufferedReader( new FileReader( file ) );
             String query;
             nextLine = br.readLine();
 
-            while ( ( query = readSingleQuery(br) ) != null)
+            while ( (query = readSingleQuery( br )) != null )
             {
                 queries.add( query );
             }
@@ -65,26 +66,26 @@ public class QueryLogFileReader
 
     private String readSingleQuery( BufferedReader reader ) throws IOException
     {
-        String query =  nextLine;
-        while( nextLine != null )
+        String query = nextLine;
+        while ( nextLine != null )
         {
             nextLine = reader.readLine();
             if ( nextLine == null )
             {
                 return query;
             }
-            // TODO: Add years here, or REGEX for all years
-            else if( nextLine.startsWith( "2018-" ) || nextLine.startsWith( "2017-" ) || nextLine.startsWith( "2016-" ) || nextLine.startsWith( "2015-" ) || nextLine.startsWith( "2014-") || nextLine.startsWith( "2013-" ))
+            else if ( nextLine.matches( "^\\d\\d\\d\\d-.*" ) )
             {
                 return query;
-            } else {
-                if (! nextLine.startsWith( "//" ))
+            }
+            else
+            {
+                if ( !nextLine.startsWith( "//" ) )
                 {
-                    query +=  " " + nextLine;
+                    query += " " + nextLine;
                 }
             }
         }
         return null;
     }
-
 }
