@@ -1,7 +1,8 @@
 package analyzer.writer.summary;
 
+import analyzer.writer.files.Outputs;
+
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 
 public class FrequentPatternSummaryTSVWriter
@@ -14,9 +15,8 @@ public class FrequentPatternSummaryTSVWriter
             int fourLengthCount,
             int fiveLengthCount ){
         String seperator = "\t ";
-        try
+        try (BufferedWriter writer = Outputs.base().dir( "summary" ).file( "frequent_patterns.tsv" ) )
         {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("summarized_output/frequent_patterns.tsv", true));
             writer.write( name + seperator );
             writer.write( totalQueryCount + seperator );
             writer.write( oneLengthCount + seperator );
@@ -25,7 +25,6 @@ public class FrequentPatternSummaryTSVWriter
             writer.write( fourLengthCount + seperator );
             writer.write( "" + fiveLengthCount );
             writer.newLine();
-            writer.close();
         }
         catch ( IOException e )
         {

@@ -1,13 +1,12 @@
 package analyzer.writer;
 
 import analyzer.parser.query.QueryLogEntry;
+import analyzer.writer.files.Outputs;
 import analyzer.writer.summary.QueryCountsTSVWriter;
 import analyzer.writer.summary.QueryShapeTSVWriter;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -18,17 +17,10 @@ public class GeneralAnalysisTSVWriter
 
     public static final boolean ANONYMOUS = false;
     public static int ACTUAL_QUERY_COUNT = 0;
-//    public static void writeDistinctQueries( String name, Map<String,List<QueryLogEntry>> queries ) {
-//
-//        new File("output").mkdirs();
-//        BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
-//        writer.write( "cypher_query \t " +
-//                "count \t " +
-//                "isReadQuery \t" +
-//    }
+
     public static void writeParsedLog( String name, Map<String,List<QueryLogEntry>> queries )
     {
-        try
+        try ( BufferedWriter writer = Outputs.base().file( name + ".tsv" ) )
         {
             int totalQueryCount = 0;
             int actualQueryCount = 0;
@@ -54,10 +46,8 @@ public class GeneralAnalysisTSVWriter
             int maxSizeObserved = 0;
             int minSizeObserved = 0;
 
-
             String seperator = "\t ";
-            new File("output").mkdirs();
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "output/"+name+".tsv" ) );
+
             writer.write( "cypher_query \t " +
                     "count \t " +
                     "isReadQuery \t" +
@@ -71,7 +61,7 @@ public class GeneralAnalysisTSVWriter
                     "is5-9EdgeQuery \t" +
                     "isChainQuery \t " +
                     "isTree \t " +
-                    "hasLoops \t"+
+                    "hasLoops \t" +
                     "parsed \t " +
                     "min_qg_size \t " +
                     "max_qg_size \t " +
@@ -82,19 +72,22 @@ public class GeneralAnalysisTSVWriter
                     "run_time_p=90 \t " +
                     "run_time_p=99 \t " +
                     "run_time_p=100"
-                    );
+            );
             writer.newLine();
             int counter = 0;
-            for ( Map.Entry<String, List<QueryLogEntry>> entry : queries.entrySet() )
+            for ( Map.Entry<String,List<QueryLogEntry>> entry : queries.entrySet() )
             {
                 counter++;
                 List<QueryLogEntry> queryLogEntries = entry.getValue();
 
                 // The Cypher string of this query (if the data is not to be anonymized)
                 String line = "";
-                if ( ANONYMOUS ) {
+                if ( ANONYMOUS )
+                {
                     line += counter;
-                }else {
+                }
+                else
+                {
                     line += entry.getKey().replace( seperator, "," ).substring( 0, Math.min( 10000, entry.getKey().length() ) );
                 }
                 line += seperator;
@@ -119,7 +112,8 @@ public class GeneralAnalysisTSVWriter
                 line += seperator;
 
                 // The query is a "call" custom procedure query.
-                if ( readOnly == 0 && readOrWrite == 0){
+                if ( readOnly == 0 && readOrWrite == 0 )
+                {
                     totalCustomProcedureCount += 1 * count;
                 }
                 // Whether this query only does a merge and no further updates.
@@ -134,10 +128,13 @@ public class GeneralAnalysisTSVWriter
                 // Get info from the parsed query data.
                 // We only do this for actual cypher queries, no weird custom calls!
 
-                if ( queryLogEntries.get( 0 ).parsed == null || ( readOnly == 0 && readOrWrite == 0)){
+                if ( queryLogEntries.get( 0 ).parsed == null || (readOnly == 0 && readOrWrite == 0) )
+                {
                     // We couldn't parse this query.
                     line += seperator + seperator + seperator + seperator + seperator + seperator;
-                } else {
+                }
+                else
+                {
                     actualQueryCount += count;
 
                     int hasEdgesInQuery = queryLogEntries.get( 0 ).parsed.hasAnyEdgeInQuery();
@@ -145,7 +142,8 @@ public class GeneralAnalysisTSVWriter
                     totalQueriesWithEdges += hasEdgesInQuery * count;
                     line += seperator;
 
-                    if ( hasEdgesInQuery == 0 ){
+                    if ( hasEdgesInQuery == 0 )
+                    {
                         totalEmptyQueryGraphQueries += count;
                     }
 
@@ -154,22 +152,22 @@ public class GeneralAnalysisTSVWriter
                     totalSingleEdgeQueries += singleEdgeQuery * count;
                     line += seperator;
 
-                    int twoEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery(2);
+                    int twoEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery( 2 );
                     line += twoEdgeQuery;
                     totalTwoEdgeQueries += twoEdgeQuery * count;
                     line += seperator;
 
-                    int threeEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery(3);
+                    int threeEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery( 3 );
                     line += threeEdgeQuery;
                     totalThreeEdgeQueries += threeEdgeQuery * count;
                     line += seperator;
 
-                    int fourEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery(4);
+                    int fourEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery( 4 );
                     line += fourEdgeQuery;
                     totalFourEdgeQueries += fourEdgeQuery * count;
                     line += seperator;
 
-                    int fiveToNineEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery(5, 9);
+                    int fiveToNineEdgeQuery = queryLogEntries.get( 0 ).parsed.isXLengthQuery( 5, 9 );
                     line += fiveToNineEdgeQuery;
                     totalFiveToNineEdgeQueries += fiveToNineEdgeQuery * count;
                     line += seperator;
@@ -190,7 +188,8 @@ public class GeneralAnalysisTSVWriter
                     line += seperator;
 
                     // if the query has edges and no loops, it must be a forest.
-                    if ( hasEdgesInQuery == 1 && queryHasLoops == 0){
+                    if ( hasEdgesInQuery == 1 && queryHasLoops == 0 )
+                    {
                         totalForestQueries += 1 * count;
                     }
 
@@ -201,15 +200,16 @@ public class GeneralAnalysisTSVWriter
                     line += queryLogEntries.get( 0 ).minQueryGraphSize;
                     line += seperator;
                     int maxQueryGraphSize = queryLogEntries.get( 0 ).maxQueryGraphSize;
-                    if ( maxQueryGraphSize == 1000000 ){
+                    if ( maxQueryGraphSize == 1000000 )
+                    {
                         line += "*";
-                    }else {
+                    }
+                    else
+                    {
                         line += maxQueryGraphSize;
                     }
                     line += seperator;
-
                 }
-
 
                 // Calculate the sum of all the running times.
                 // Also sort the list of observed running times.
@@ -228,34 +228,39 @@ public class GeneralAnalysisTSVWriter
 
                 // 0%, 50%, 75%, 90%, 99%, 100% percentiles
                 line += (int) executionTimes[0] + seperator;
-                line += (int) executionTimes[(int)(totalQueryLogEntries * 0.50)] + seperator;
-                line += (int) executionTimes[(int)(totalQueryLogEntries * 0.75)] + seperator;
-                line += (int) executionTimes[(int)(totalQueryLogEntries * 0.90)] + seperator;
-                line += (int) executionTimes[(int)(totalQueryLogEntries * 0.99)] + seperator;
+                line += (int) executionTimes[(int) (totalQueryLogEntries * 0.50)] + seperator;
+                line += (int) executionTimes[(int) (totalQueryLogEntries * 0.75)] + seperator;
+                line += (int) executionTimes[(int) (totalQueryLogEntries * 0.90)] + seperator;
+                line += (int) executionTimes[(int) (totalQueryLogEntries * 0.99)] + seperator;
                 line += (int) executionTimes[totalQueryLogEntries - 1] + "";
-
 
                 writer.write( line );
                 writer.newLine();
 
                 // Check min and max qg size...
                 minSizeObserved = Math.min( minSizeObserved, entry.getValue().get( 0 ).minQueryGraphSize );
-                if ( queryIsUnboundedVariableLength == 1){
+                if ( queryIsUnboundedVariableLength == 1 )
+                {
                     maxSizeObserved = 1000000;
-                } else {
+                }
+                else
+                {
                     maxSizeObserved = Math.max( maxSizeObserved, entry.getValue().get( 0 ).maxQueryGraphSize );
                 }
             }
             ACTUAL_QUERY_COUNT = actualQueryCount;
-            QueryCountsTSVWriter.writeSummaryCounts( name, totalQueryCount, totalUniqueQueryCount, totalReadOnlyCount, totalReadAndWriteCount, totalMergeOnlyWriteQueryCount, totalCustomProcedureCount );
-            totalMoreThanTenEdgeQueries = totalQueriesWithEdges - totalSingleEdgeQueries - totalTwoEdgeQueries - totalThreeEdgeQueries - totalFourEdgeQueries - totalFiveToNineEdgeQueries;
-            QueryShapeTSVWriter.writeSummaryCounts( name, actualQueryCount, totalQueriesWithEdges, totalSingleEdgeQueries, totalTwoEdgeQueries, totalThreeEdgeQueries, totalFourEdgeQueries, totalFiveToNineEdgeQueries, totalMoreThanTenEdgeQueries, totalEmptyQueryGraphQueries, totalChainQueries, totalTreeQueries, totalForestQueries, totalWithLoops, totalWithUnboundedVariableLength, minSizeObserved, maxSizeObserved );
-            writer.close();
+            QueryCountsTSVWriter.writeSummaryCounts( name, totalQueryCount, totalUniqueQueryCount, totalReadOnlyCount, totalReadAndWriteCount,
+                    totalMergeOnlyWriteQueryCount, totalCustomProcedureCount );
+            totalMoreThanTenEdgeQueries = totalQueriesWithEdges - totalSingleEdgeQueries - totalTwoEdgeQueries - totalThreeEdgeQueries - totalFourEdgeQueries -
+                    totalFiveToNineEdgeQueries;
+            QueryShapeTSVWriter.writeSummaryCounts( name, actualQueryCount, totalQueriesWithEdges, totalSingleEdgeQueries, totalTwoEdgeQueries,
+                    totalThreeEdgeQueries, totalFourEdgeQueries, totalFiveToNineEdgeQueries, totalMoreThanTenEdgeQueries, totalEmptyQueryGraphQueries,
+                    totalChainQueries, totalTreeQueries, totalForestQueries, totalWithLoops, totalWithUnboundedVariableLength, minSizeObserved,
+                    maxSizeObserved );
         }
         catch ( IOException e )
         {
             e.printStackTrace();
         }
     }
-
 }

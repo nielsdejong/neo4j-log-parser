@@ -1,18 +1,16 @@
 package analyzer.writer.summary;
 
+import analyzer.writer.files.Outputs;
+
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 public class QueryCountsTSVWriter
 {
     public static void writeSummaryCounts( String name,  int totalQueryCount, int totalUniqueQueryCount, int totalReadOnlyCount, int totalReadAndWriteCount, int totalMergeCount, int totalCustomProcedureCount ){
         String seperator = "\t ";
-        try
+        try (BufferedWriter writer = Outputs.base().dir( "summary" ).file( "counts.tsv" ) )
         {
-            new File( "summarized_output" ).mkdirs();
-            BufferedWriter writer = new BufferedWriter(new FileWriter("summarized_output/counts.tsv", true));
             writer.write( name + seperator );
             writer.write( totalQueryCount + seperator );
             writer.write( totalUniqueQueryCount + seperator );
@@ -21,7 +19,6 @@ public class QueryCountsTSVWriter
             writer.write( totalMergeCount + seperator );
             writer.write( totalCustomProcedureCount + "" );
             writer.newLine();
-            writer.close();
         }
         catch ( IOException e )
         {

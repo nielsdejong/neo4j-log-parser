@@ -3,12 +3,11 @@ package analyzer.writer;
 import analyzer.cypher.ParsedRelationshipBlockChain;
 import analyzer.cypher.structure.SubGraphGenerator;
 import analyzer.parser.query.QueryLogEntry;
+import analyzer.writer.files.Outputs;
 import analyzer.writer.summary.FrequentPatternSummaryTSVWriter;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,12 +19,10 @@ public class FrequentPatternTSVWriter
     private static final float SUMMARIZED_FREQUENT_PATTERN_COUNT_PERCENTAGE_MINIMUM = 0.1f;
     public static void writeParsedLog( String name, Map<String,List<QueryLogEntry>> queryMap, int actualQueryCount )
     {
-        try
+        try (BufferedWriter writer = Outputs.base().dir( "pattern" ).file( name + ".tsv" ) )
         {
             SubGraphGenerator subGraphGenerator = new SubGraphGenerator();
             String seperator = " \t ";
-            new File("pattern_output").mkdirs();
-            BufferedWriter writer = new BufferedWriter( new PrintWriter( "pattern_output/"+name+".tsv" ) );
             writer.write( "pattern \t length \t count \t original");
             writer.newLine();
 
@@ -40,8 +37,6 @@ public class FrequentPatternTSVWriter
             Object[] frequentPatternArray = seenBlockChainsWithCount.entrySet().toArray();
             sortFrequentPatternsDescending( frequentPatternArray );
             writeOutput( name, actualQueryCount, seperator, writer, frequentPatternArray );
-
-            writer.close();
         }
         catch ( IOException e )
         {

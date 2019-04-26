@@ -1,7 +1,8 @@
 package analyzer.writer.summary;
 
+import analyzer.writer.files.Outputs;
+
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 
 public class QueryShapeTSVWriter
@@ -24,9 +25,8 @@ public class QueryShapeTSVWriter
             int minSizeObserved,
             int maxSizeObserved ){
         String seperator = "\t ";
-        try
+        try (BufferedWriter writer = Outputs.base().dir( "summary" ).file( "shapes.tsv" ) )
         {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("summarized_output/shapes.tsv", true));
             writer.write( name + seperator );
             writer.write( totalQueryCount + seperator );
             writer.write( totalQueriesWithEdges + seperator );
@@ -49,7 +49,6 @@ public class QueryShapeTSVWriter
                 writer.write( maxSizeObserved + "" );
             }
             writer.newLine();
-            writer.close();
         }
         catch ( IOException e )
         {
