@@ -1,10 +1,20 @@
 # neo4j-log-analyzer
 Parsers and analyzes Neo4j query logs to build a structural summary and discover frequent patterns. 
 
-## Input:
+## Running
+### With Maven
+```
+mvn compile
+mvn exec:java -Dlog.input.dir=path/to/logs/dir
+```
+
+### Otherwise
+- Run the main class (LogAnalyzer) with a single argument (the location of your Neo4j query log folders).  When processing many logs, a large amount of assigned memory is recommended. (i.e. run with the `-Xmx16000m` parameter)
+
+## Input
 - 1 or more folders containing query.log files.
 
-## Output:
+## Output
 
 - For each of the logs:
   - For each unique Cypher query:
@@ -18,9 +28,3 @@ Parsers and analyzes Neo4j query logs to build a structural summary and discover
   - The total counts of the number of unique queries, read/write queries and custom procedure calls.
   - The number of k-length patterns that are frequent (>10% of query count)
   - Aggregated information of the its queries' structure and shapes.
-  
-## How to run:
-- Run the main class (LogAnalyzer) with a single argument (the location of your Neo4j query log folders).  When processing many logs, a large amount of assigned memory is recommended. (i.e. run with the `-Xmx16000m` parameter)
-
-## Notes:
-The log analyzer requires a modified version of Neo4j 4.0 with a special Cypher parser class in Scala. This class is added to the repository: `scala/CypherSpecialLogParsing.scala`. 
